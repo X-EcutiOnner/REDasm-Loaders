@@ -1,9 +1,28 @@
 cmake_minimum_required(VERSION 3.25)
-project(PE)
 
-find_package(REDasm REQUIRED)
+project(pe C)
 
-file(GLOB_RECURSE HEADERS *.h*)
-file(GLOB_RECURSE SOURCES *.cpp)
+if(NOT TARGET redasm::redasm)
+    find_package(redasm REQUIRED)
+endif()
 
-redasm_plugin(${PROJECT_NAME} ${LOADER_TYPE} ${HEADERS} ${SOURCES})
+add_library(${PROJECT_NAME} SHARED)
+
+target_sources(${PROJECT_NAME} 
+    PRIVATE
+        dirs/debug.c
+        dirs/exceptions.c
+        dirs/exports.c
+        dirs/imports.c
+        dirs/resources.c
+        format.c
+        plugin.c
+)
+
+target_include_directories(${PROJECT_NAME}
+    PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+target_link_libraries(${PROJECT_NAME} PRIVATE redasm::redasm)
+
