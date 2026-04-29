@@ -14,7 +14,6 @@ target_sources(${PROJECT_NAME}
 
         env/dos.c
 
-        pe/pe.c
         pe/dirs/debug.c
         pe/dirs/exceptions.c
         pe/dirs/exports.c
