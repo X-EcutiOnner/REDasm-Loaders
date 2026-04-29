@@ -12,6 +12,8 @@ target_sources(${PROJECT_NAME}
     PRIVATE
         com/com.c
 
+        env/dos.c
+
         pe/pe.c
         pe/dirs/debug.c
         pe/dirs/exceptions.c
