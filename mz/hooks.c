@@ -17,15 +17,12 @@ static void _x86_dos_int_hook(RDContext* ctx, RDInstruction* instr) {
 
     switch(instr->operands[0].imm) {
         case 0x21: {
-            RDReg reg_ah = rd_get_register_id(ctx, "ah");
-
             RDRegValue ah;
-            if(!rd_get_regval(ctx, instr->address, reg_ah, &ah)) return;
+            if(!rd_get_regval(ctx, instr->address, "ah", &ah)) return;
 
             if(ah == 0x09) { // print string
-                RDReg reg_dx = rd_get_register_id(ctx, "dx");
                 RDRegValue dx;
-                if(!rd_get_regval(ctx, instr->address, reg_dx, &dx)) return;
+                if(!rd_get_regval(ctx, instr->address, "dx", &dx)) return;
                 _x86_read_com_string(ctx, (RDAddress)dx);
             }
             else if(ah == 0x4c) // standard exit

@@ -1,9 +1,7 @@
 #include "common.h"
-#include "pe/constants.h"
 
 bool mz_read_dos_header(RDReader* r, ImageDosHeader* dh) {
     rd_reader_read_le16(r, &dh->e_magic);
-
     if(dh->e_magic != IMAGE_DOS_SIGNATURE) return false;
 
     rd_reader_read_le16(r, &dh->e_cblp);
@@ -32,4 +30,12 @@ bool mz_read_dos_header(RDReader* r, ImageDosHeader* dh) {
     rd_reader_read_le32(r, &dh->e_lfanew);
 
     return !rd_reader_has_error(r);
+}
+
+u32 mz_read_signature(RDReader* r, const ImageDosHeader* dh) {
+    if(!dh->e_lfanew) return 0;
+
+    rd_reader_seek(r, dh->e_lfanew);
+    u32 sig;
+    return rd_reader_read_le32(r, &sig) ? sig : 0;
 }

@@ -11,7 +11,7 @@ add_library(${PROJECT_NAME} SHARED)
 target_sources(${PROJECT_NAME} 
     PRIVATE
         com/com.c
-
+        mz/mz.c
         pe/dirs/debug.c
         pe/dirs/exceptions.c
         pe/dirs/exports.c
@@ -19,7 +19,6 @@ target_sources(${PROJECT_NAME}
         pe/dirs/resources.c
         pe/format.c
         pe/pe.c
-
         common.c
         hooks.c
         plugin.c

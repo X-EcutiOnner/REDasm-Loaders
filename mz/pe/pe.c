@@ -11,8 +11,8 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     PEFormat* pe = (PEFormat*)ldr;
     if(!mz_read_dos_header(req->input, &pe->dosheader)) return false;
 
-    rd_reader_seek(req->input, pe->dosheader.e_lfanew);
-    if(!rd_reader_expect_le32(req->input, IMAGE_NT_SIGNATURE)) return false;
+    u32 sig = mz_read_signature(req->input, &pe->dosheader);
+    if(sig != IMAGE_NT_SIGNATURE) return false;
 
     rd_reader_read_le16(req->input, &pe->fileheader.Machine);
     rd_reader_read_le16(req->input, &pe->fileheader.NumberOfSections);
@@ -136,9 +136,7 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     }
 
     RDAddress ep;
-    if(pe_from_rva(pe, pe->entrypoint, &ep))
-        rd_set_entry_point(ctx, ep, "PE_EntryPoint");
-
+    if(pe_from_rva(pe, pe->entrypoint, &ep)) rd_set_entry_point(ctx, ep, NULL);
     return true;
 }
 
@@ -147,7 +145,7 @@ static RDLoader* pe_create(const RDLoaderPlugin* plugin) {
     return calloc(1, sizeof(PEFormat));
 }
 
-static void pe_destroy(RDLoader* self) { free(self); }
+static void pe_destroy(RDLoader* ldr) { free(ldr); }
 
 static const char* pe_get_processor(RDLoader* ldr, const RDContext* ctx) {
     RD_UNUSED(ctx);
@@ -171,7 +169,7 @@ static const char* pe_get_processor(RDLoader* ldr, const RDContext* ctx) {
 
 const RDLoaderPlugin PE_LOADER = {
     .level = RD_API_LEVEL,
-    .id = "mz_pe",
+    .id = "win_pe",
     .name = "Portable Executable",
     .create = pe_create,
     .destroy = pe_destroy,

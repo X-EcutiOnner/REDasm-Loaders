@@ -196,7 +196,7 @@ static RDLoader* elf_create(const RDLoaderPlugin* plugin) {
     return calloc(1, sizeof(ELFFormat));
 }
 
-static void elf_destroy(RDLoader* self) { free(self); }
+static void elf_destroy(RDLoader* ldr) { free(ldr); }
 
 static bool elf_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     ELFFormat* elf = (ELFFormat*)ldr;
