@@ -1,35 +1,73 @@
 #include "hooks.h"
 
-static void _x86_read_com_string(RDContext* ctx, RDAddress addr) {
+// https://www.stanislavs.org/helppc/int_21.html
+
+static void _x86_read_com_string(RDContext* ctx, const RDInstruction* instr,
+                                 RDAddress addr, u8 term) {
     usize count = 0;
     u8 b;
 
-    while(rd_read_u8(ctx, addr + count, &b) && b != '$')
+    while(rd_read_u8(ctx, addr + count, &b) && b != term)
         count++;
 
-    count++; // include '$'
+    count++; // include terminator
 
-    if(count > 1) rd_library_type(ctx, addr, "char", count, RD_TYPE_NONE);
+    if(count > 1) {
+        rd_add_xref(ctx, instr->address, addr, RD_DR_READ);
+        rd_library_type(ctx, addr, "char", count, RD_TYPE_NONE);
+    }
+}
+
+static void _x86_dos_21h(RDContext* ctx, RDInstruction* instr) {
+    RDRegValue ah;
+    if(!rd_get_regval(ctx, instr->address, "ah", &ah)) return;
+
+    switch(ah) {
+        case 0x09: { // print
+            RDRegValue dx;
+            if(!rd_get_regval(ctx, instr->address, "dx", &dx)) return;
+            _x86_read_com_string(ctx, instr, (RDAddress)dx, '$');
+            break;
+        }
+
+        case 0x3d: { // file open
+            RDRegValue dx;
+            if(!rd_get_regval(ctx, instr->address, "dx", &dx)) return;
+            _x86_read_com_string(ctx, instr, (RDAddress)dx, '\0');
+            break;
+        }
+
+        case 0x40: { // file write (bx=1 stdout, bx=2 stderr)
+            RDRegValue bx, cx, dx;
+            if(!rd_get_regval(ctx, instr->address, "bx", &bx)) return;
+            if(bx != 1 && bx != 2)
+                break; // only stdout/stderr are likely strings
+
+            if(!rd_get_regval(ctx, instr->address, "cx", &cx)) return;
+            if(!rd_get_regval(ctx, instr->address, "dx", &dx)) return;
+
+            if(cx > 0) {
+                rd_add_xref(ctx, instr->address, (RDAddress)dx, RD_DR_READ);
+                rd_library_type(ctx, (RDAddress)dx, "char", (usize)cx,
+                                RD_TYPE_NONE);
+            }
+
+            break;
+        }
+
+        case 0x4c: // exit
+            instr->flow = RD_IF_STOP;
+            break;
+
+        default: break;
+    }
 }
 
 static void _x86_dos_int_hook(RDContext* ctx, RDInstruction* instr) {
     if(instr->operands[0].kind != RD_OP_CNST) return;
 
     switch(instr->operands[0].cnst) {
-        case 0x21: {
-            RDRegValue ah;
-            if(!rd_get_regval(ctx, instr->address, "ah", &ah)) return;
-
-            if(ah == 0x09) { // print string
-                RDRegValue dx;
-                if(!rd_get_regval(ctx, instr->address, "dx", &dx)) return;
-                _x86_read_com_string(ctx, (RDAddress)dx);
-            }
-            else if(ah == 0x4c) // standard exit
-                instr->flow = RD_IF_STOP;
-            break;
-        }
-
+        case 0x21: _x86_dos_21h(ctx, instr); break;
         case 0x20: // Terminate program
         case 0x27: // Terminate and stay resident
             instr->flow = RD_IF_STOP;
