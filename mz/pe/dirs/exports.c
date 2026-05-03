@@ -74,14 +74,16 @@ bool pe_read_exports(RDContext* ctx, PEFormat* pe) {
     rd_reader_read_le32(r, &exportdir.AddressOfNameOrdinals);
     if(rd_reader_has_error(r)) return false;
 
-    rd_user_type(ctx, va, "IMAGE_EXPORT_DIRECTORY", 0, RD_TYPE_NONE);
+    rd_library_type(ctx, va, "IMAGE_EXPORT_DIRECTORY", 0, RD_TYPE_NONE);
 
     RDAddress name_va;
     if(pe_from_rva(pe, exportdir.Name, &name_va)) {
         rd_reader_seek(r, name_va);
         usize n;
-        if(rd_reader_peek_str(r, &n))
-            rd_user_type(ctx, name_va, "char", n + 1, RD_TYPE_NONE);
+        if(rd_reader_peek_str(r, &n)) {
+            rd_library_type(ctx, name_va, "char", n + 1, RD_TYPE_NONE);
+            rd_library_name(ctx, name_va, "__rd_pe_module_name");
+        }
     }
 
     for(u32 i = 0; i < exportdir.NumberOfNames; i++) {
@@ -131,7 +133,7 @@ bool pe_read_exports(RDContext* ctx, PEFormat* pe) {
         const char* name = rd_reader_peek_str(r, &n);
         if(!name) continue;
 
-        rd_user_type(ctx, exportname_va, "char", n + 1, RD_TYPE_NONE);
+        rd_library_type(ctx, exportname_va, "char", n + 1, RD_TYPE_NONE);
         rd_set_exported(ctx, entry_va, name);
 
         const RDSegment* seg = rd_find_segment(ctx, entry_va);

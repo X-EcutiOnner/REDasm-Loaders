@@ -28,7 +28,7 @@ static void _pe_read_thunks(RDContext* ctx, PEFormat* pe, RDReader* r,
         if(rd_reader_has_error(r)) break;
 
         if(!thunk) {
-            rd_user_type(ctx, addr, thunktype, 0, RD_TYPE_NONE);
+            rd_library_type(ctx, addr, thunktype, 0, RD_TYPE_NONE);
             break;
         }
 
@@ -56,9 +56,9 @@ static void _pe_read_thunks(RDContext* ctx, PEFormat* pe, RDReader* r,
             usize n;
             const char* name = rd_reader_read_str(r, &n);
 
-            rd_user_type(ctx, thunkva, "u16", 0, RD_TYPE_NONE);
-            rd_user_type(ctx, thunkva + sizeof(u16), "char", n + 1,
-                         RD_TYPE_NONE);
+            rd_library_type(ctx, thunkva, "u16", 0, RD_TYPE_NONE);
+            rd_library_type(ctx, thunkva + sizeof(u16), "char", n + 1,
+                            RD_TYPE_NONE);
 
             rd_library_name(ctx, thunkva,
                             rd_format("%s%s_%s_hint", prefix, module, name));
@@ -108,7 +108,7 @@ bool pe_read_imports(RDContext* ctx, PEFormat* pe) {
         rd_reader_read_le32(r, &importdescr.FirstThunk);
         if(rd_reader_has_error(r)) return false;
 
-        rd_user_type(ctx, va, "IMAGE_IMPORT_DESCRIPTOR", 0, RD_TYPE_NONE);
+        rd_library_type(ctx, va, "IMAGE_IMPORT_DESCRIPTOR", 0, RD_TYPE_NONE);
 
         // null terminator descriptor
         if(!importdescr.OriginalFirstThunk && !importdescr.Name &&
@@ -123,7 +123,7 @@ bool pe_read_imports(RDContext* ctx, PEFormat* pe) {
             rd_reader_seek(r, name_va);
             module = rd_strdup(rd_reader_peek_str(r, &n));
             if(module)
-                rd_user_type(ctx, name_va, "char", n + 1, RD_TYPE_NONE);
+                rd_library_type(ctx, name_va, "char", n + 1, RD_TYPE_NONE);
             else
                 continue;
         }

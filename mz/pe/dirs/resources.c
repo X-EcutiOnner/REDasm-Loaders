@@ -14,7 +14,7 @@ static void _pe_read_resource_dir(RDContext* ctx, PEFormat* pe, RDReader* r,
     rd_reader_read_le16(r, &resdir.NumberOfIdEntries);
     if(rd_reader_has_error(r)) return;
 
-    rd_user_type(ctx, va, "IMAGE_RESOURCE_DIRECTORY", 0, RD_TYPE_NONE);
+    rd_library_type(ctx, va, "IMAGE_RESOURCE_DIRECTORY", 0, RD_TYPE_NONE);
 
     u16 total = resdir.NumberOfNamedEntries + resdir.NumberOfIdEntries;
     RDAddress entry_va = va + rd_size_of(ctx, "IMAGE_RESOURCE_DIRECTORY", 0);
@@ -26,8 +26,8 @@ static void _pe_read_resource_dir(RDContext* ctx, PEFormat* pe, RDReader* r,
         rd_reader_read_le32(r, &entry.OffsetToData);
         if(rd_reader_has_error(r)) break;
 
-        rd_user_type(ctx, entry_va, "IMAGE_RESOURCE_DIRECTORY_ENTRY", 0,
-                     RD_TYPE_NONE);
+        rd_library_type(ctx, entry_va, "IMAGE_RESOURCE_DIRECTORY_ENTRY", 0,
+                        RD_TYPE_NONE);
 
         if(entry.OffsetToData & IMAGE_RESOURCE_DATA_IS_DIRECTORY) {
             RDAddress subdir_va =
@@ -36,8 +36,8 @@ static void _pe_read_resource_dir(RDContext* ctx, PEFormat* pe, RDReader* r,
         }
         else {
             RDAddress dataentry_va = base + entry.OffsetToData;
-            rd_user_type(ctx, dataentry_va, "IMAGE_RESOURCE_DATA_ENTRY", 0,
-                         RD_TYPE_NONE);
+            rd_library_type(ctx, dataentry_va, "IMAGE_RESOURCE_DATA_ENTRY", 0,
+                            RD_TYPE_NONE);
 
             ImageResourceDataEntry dataentry;
             rd_reader_seek(r, dataentry_va);
@@ -91,7 +91,7 @@ bool pe_read_resources(RDContext* ctx, PEFormat* pe) {
     RDAddress va;
     if(!pe_from_rva(pe, d.VirtualAddress, &va)) return false;
 
-    rd_user_type(ctx, va, "IMAGE_RESOURCE_DIRECTORY", 0, RD_TYPE_NONE);
+    rd_library_type(ctx, va, "IMAGE_RESOURCE_DIRECTORY", 0, RD_TYPE_NONE);
 
     RDReader* r = rd_get_reader(ctx);
     _pe_read_resource_dir(ctx, pe, r, va, va, 0);

@@ -37,8 +37,8 @@ bool pe_read_exceptions(RDContext* ctx, PEFormat* pe) {
         if(rd_reader_has_error(r)) break;
         if(!entry.BeginAddress) continue;
 
-        rd_user_type(ctx, entry_va, "IMAGE_RUNTIME_FUNCTION_ENTRY", 0,
-                     RD_TYPE_NONE);
+        rd_library_type(ctx, entry_va, "IMAGE_RUNTIME_FUNCTION_ENTRY", 0,
+                        RD_TYPE_NONE);
 
         RDAddress func_va;
         if(!pe_from_rva(pe, entry.BeginAddress, &func_va)) continue;

@@ -60,22 +60,24 @@ static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
     if(!rd_reader_read_le32(r, &sig)) return;
 
     if(sig == PE_CVINFO_PDB20_SIGNATURE) {
-        rd_user_type(ctx, dbgva, "CV_INFO_PDB20", 0, RD_TYPE_NONE);
+        rd_library_type(ctx, dbgva, "CV_INFO_PDB20", 0, RD_TYPE_NONE);
 
         RDAddress pdbname_va = dbgva + rd_size_of(ctx, "CV_INFO_PDB20", 0);
         usize n;
         rd_reader_seek(r, pdbname_va);
         const char* pdbname = rd_reader_peek_str(r, &n);
-        if(pdbname) rd_user_type(ctx, pdbname_va, "char", n + 1, RD_TYPE_NONE);
+        if(pdbname)
+            rd_library_type(ctx, pdbname_va, "char", n + 1, RD_TYPE_NONE);
     }
     else if(sig == PE_CVINFO_PDB70_SIGNATURE) {
-        rd_user_type(ctx, dbgva, "CV_INFO_PDB70", 0, RD_TYPE_NONE);
+        rd_library_type(ctx, dbgva, "CV_INFO_PDB70", 0, RD_TYPE_NONE);
 
         RDAddress pdbname_va = dbgva + rd_size_of(ctx, "CV_INFO_PDB70", 0);
         usize n;
         rd_reader_seek(r, pdbname_va);
         const char* pdbname = rd_reader_peek_str(r, &n);
-        if(pdbname) rd_user_type(ctx, pdbname_va, "char", n + 1, RD_TYPE_NONE);
+        if(pdbname)
+            rd_library_type(ctx, pdbname_va, "char", n + 1, RD_TYPE_NONE);
     }
 }
 
@@ -105,7 +107,8 @@ bool pe_read_debug(RDContext* ctx, PEFormat* pe) {
         rd_reader_read_le32(r, &dbgdir.PointerToRawData);
         if(rd_reader_has_error(r)) break;
 
-        rd_user_type(ctx, entry_va, "IMAGE_DEBUG_DIRECTORY", 0, RD_TYPE_NONE);
+        rd_library_type(ctx, entry_va, "IMAGE_DEBUG_DIRECTORY", 0,
+                        RD_TYPE_NONE);
 
         if(dbgdir.Type == IMAGE_DEBUG_TYPE_CODEVIEW)
             _pe_read_codeview(ctx, pe, r, &dbgdir);
