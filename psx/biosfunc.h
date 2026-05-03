@@ -2,4 +2,4 @@
 
 #include <redasm/redasm.h>
 
-void psx_bios_autorename(RDContext* ctx);
+void psx_bios_autorename_hook(RDContext* ctx);

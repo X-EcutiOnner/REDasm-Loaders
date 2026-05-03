@@ -257,7 +257,7 @@ static const char* psx_bios_lookup(u8 sel, u8 fn) {
     return NULL;
 }
 
-void psx_bios_autorename(RDContext* ctx) {
+void psx_bios_autorename_hook(RDContext* ctx) {
     RDFunctionSlice functions = rd_get_all_functions(ctx);
 
     const RDFunction** it;

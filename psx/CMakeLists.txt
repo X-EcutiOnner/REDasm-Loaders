@@ -10,8 +10,10 @@ add_library(${PROJECT_NAME} SHARED)
 
 target_sources(${PROJECT_NAME} 
     PRIVATE
+        bios.c
         biosfunc.c
         plugin.c
+        exe.c
 )
 
 target_include_directories(${PROJECT_NAME}
