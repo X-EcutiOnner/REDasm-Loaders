@@ -6,6 +6,7 @@
 #include "pe/dirs/imports.h"
 #include "pe/dirs/resources.h"
 #include <stdlib.h>
+#include <string.h>
 
 static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     PEFormat* pe = (PEFormat*)ldr;
@@ -111,8 +112,13 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
         if(s.Characteristics & IMAGE_SCN_MEM_READ) perm |= RD_SP_R;
         if(s.Characteristics & IMAGE_SCN_MEM_WRITE) perm |= RD_SP_W;
 
+        // if section name is exactly IMAGE_SIZEOF_SHORT_NAME long
+        // it needs a null terminator (not included in PE Header)
+        char section_name[IMAGE_SIZEOF_SHORT_NAME + 1] = {0};
+        memcpy(section_name, s.Name, IMAGE_SIZEOF_SHORT_NAME);
+
         RDAddress addr = pe->imagebase + s.VirtualAddress;
-        rd_map_segment_n(ctx, s.Name, addr, s.VirtualSize, perm);
+        rd_map_segment_n(ctx, section_name, addr, s.VirtualSize, perm);
 
         rd_map_input_n(ctx, s.PointerToRawData, addr,
                        s.VirtualSize < s.SizeOfRawData ? s.VirtualSize

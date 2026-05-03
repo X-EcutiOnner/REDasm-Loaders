@@ -1,4 +1,37 @@
 #include "exports.h"
+#include <string.h>
+
+/*
+ * GNU ld emits these linker-defined boundary symbols in the export table
+ * when targeting PE (MinGW). They are address markers, not functions.
+ * - _etext marks the end of .text
+ * - _edata the end of initialized data
+ * - _end the end of BSS
+ *
+ * The executable permission check alone is not enough because
+ * _etext lands inside the executable segment it is bounding.
+ */
+static bool _pe_is_linker_boundary(const char* name) {
+    static const char* const BOUNDARIES[] = {
+        "_etext",
+        "_edata",
+        "_end",
+        "__bss_start",
+        "__fini_array_start",
+        "__fini_array_end",
+        "__init_array_start",
+        "__init_array_end",
+        "__preinit_array_start",
+        "__preinit_array_end",
+        NULL,
+    };
+
+    for(int i = 0; BOUNDARIES[i]; i++) {
+        if(strcmp(name, BOUNDARIES[i]) == 0) return true;
+    }
+
+    return false;
+}
 
 void pe_register_exports_types(RDContext* ctx) {
     // clang-format off
@@ -72,7 +105,7 @@ bool pe_read_exports(RDContext* ctx, PEFormat* pe) {
         rd_reader_read_le16(r, &ordinal_idx);
         if(rd_reader_has_error(r)) continue;
 
-        RDAddress func_va, funcptrs_va;
+        RDAddress entry_va, funcptrs_va;
         if(!pe_from_rva(
                pe, exportdir.AddressOfFunctions + (ordinal_idx * sizeof(u32)),
                &funcptrs_va))
@@ -87,7 +120,7 @@ bool pe_read_exports(RDContext* ctx, PEFormat* pe) {
             funcrva >= d.VirtualAddress && funcrva < d.VirtualAddress + d.Size;
         if(is_fwd) continue; // don't handle export forwarding (yet)
 
-        if(!pe_from_rva(pe, funcrva, &func_va)) continue;
+        if(!pe_from_rva(pe, funcrva, &entry_va)) continue;
 
         RDAddress exportname_va;
         if(!pe_from_rva(pe, name_rva, &exportname_va)) continue;
@@ -99,8 +132,15 @@ bool pe_read_exports(RDContext* ctx, PEFormat* pe) {
         if(!name) continue;
 
         rd_user_type(ctx, exportname_va, "char", n + 1, RD_TYPE_NONE);
-        rd_set_exported(ctx, func_va, name);
-        rd_library_function(ctx, func_va, name);
+        rd_set_exported(ctx, entry_va, name);
+
+        const RDSegment* seg = rd_find_segment(ctx, entry_va);
+        if(!seg) continue;
+
+        if((seg->perm & RD_SP_X) && !_pe_is_linker_boundary(name))
+            rd_library_function(ctx, entry_va, name);
+        else
+            rd_library_name(ctx, entry_va, name);
     }
 
     return true;
