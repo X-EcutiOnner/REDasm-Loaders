@@ -26,3 +26,5 @@ bool elf_read_rela(const ELFFormat* self, RDReader* reader, u64 offset, u64 idx,
 
 const char* elf_read_shname(const ELFFormat* self, RDReader* reader,
                             u32 sh_name);
+
+RDAddress elf_norm(RDContext* ctx, const ELFFormat* elf, RDAddress address);

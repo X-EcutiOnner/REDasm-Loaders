@@ -71,8 +71,8 @@ static void _elf_load_program(ELFFormat* elf, RDContext* ctx) {
     }
 }
 
-static void _elf_process_sym(RDContext* ctx, RDReader* r, const ELFShdr* strtab,
-                             const ELFSym* sym) {
+static void _elf_process_sym(RDContext* ctx, const ELFFormat* elf, RDReader* r,
+                             const ELFShdr* strtab, const ELFSym* sym) {
     u8 bind = ELF_ST_BIND(sym->st_info);
     u8 type = ELF_ST_TYPE(sym->st_info);
 
@@ -88,23 +88,24 @@ static void _elf_process_sym(RDContext* ctx, RDReader* r, const ELFShdr* strtab,
     if(!name || !(*name)) return;
 
     bool is_imported = sym->st_shndx == ELF_SHN_UNDEF;
+    RDAddress symaddr = elf_norm(ctx, elf, (RDAddress)sym->st_value);
 
     if(type == ELF_STT_FUNC) {
         if(is_imported)
-            rd_set_imported(ctx, sym->st_value, NULL, name);
+            rd_set_imported(ctx, symaddr, NULL, name);
         else
-            rd_library_function(ctx, sym->st_value, name);
+            rd_library_function(ctx, symaddr, name);
     }
     else if(type == ELF_STT_OBJECT) {
         if(is_imported)
-            rd_set_imported(ctx, sym->st_value, NULL, name);
+            rd_set_imported(ctx, symaddr, NULL, name);
         else
-            rd_library_name(ctx, sym->st_value, name);
+            rd_library_name(ctx, symaddr, name);
     }
 
     // mark globals defined in this binary as exported
     if(!is_imported && bind == ELF_STB_GLOBAL)
-        rd_set_exported(ctx, sym->st_value, NULL);
+        rd_set_exported(ctx, symaddr, NULL);
 }
 
 static void _elf_read_symtab(ELFFormat* elf, RDContext* ctx, RDReader* r,
@@ -122,7 +123,7 @@ static void _elf_read_symtab(ELFFormat* elf, RDContext* ctx, RDReader* r,
         ELFSym sym;
         if(!elf_read_sym(elf, r, symtab->sh_offset, i, &sym)) continue;
 
-        _elf_process_sym(ctx, r, &strtab, &sym);
+        _elf_process_sym(ctx, elf, r, &strtab, &sym);
     }
 }
 
@@ -242,7 +243,7 @@ static bool elf_load(RDLoader* ldr, RDContext* ctx) {
     // set entry point: only meaningful for ET_EXEC and ET_DYN
     if(elf->ehdr.e_type == ELF_ET_EXEC ||
        elf->ehdr.e_type == ELF_ET_DYN && elf->ehdr.e_entry) {
-        rd_set_entry_point(ctx, elf->ehdr.e_entry, NULL);
+        rd_set_entry_point(ctx, elf_norm(ctx, elf, elf->ehdr.e_entry), NULL);
     }
 
     return true;
@@ -257,7 +258,12 @@ static const char* elf_get_processor(RDLoader* ldr, const RDContext* ctx) {
     switch(elf->ehdr.e_machine) {
         case ELF_EM_386: return "x86_32";
         case ELF_EM_X86_64: return "x86_64";
-        case ELF_EM_ARM: return is_be ? "arm32_be" : "arm32_le";
+
+        case ELF_EM_ARM: {
+            // return is_be ? "arm32_be" : "arm32_le";
+            return is_be ? "thumb_be" : "thumb_le";
+        }
+
         case ELF_EM_AARCH64: return is_be ? "arm64_be" : "arm64_le";
         case ELF_EM_PPC: return "ppc32_be";
         case ELF_EM_PPC64: return is_be ? "ppc64_be" : "ppc64_le";
