@@ -258,7 +258,7 @@ static const char* elf_get_processor(RDLoader* ldr, const RDContext* ctx) {
         case ELF_EM_386: return "x86_32";
         case ELF_EM_X86_64: return "x86_64";
         case ELF_EM_ARM: return is_be ? "arm32_be" : "arm32_le";
-        case ELF_EM_AARCH64: return "arm64"; // endianness?!?
+        case ELF_EM_AARCH64: return is_be ? "arm64_be" : "arm64_le";
         case ELF_EM_PPC: return "ppc32_be";
         case ELF_EM_PPC64: return is_be ? "ppc64_be" : "ppc64_le";
 
