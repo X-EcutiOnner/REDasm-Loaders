@@ -263,7 +263,7 @@ void psx_bios_autorename_hook(RDContext* ctx) {
     const RDFunction** it;
     rd_slice_each(it, functions) {
         const RDFunction* f = *it;
-        if(rd_function_get_n_instructions(f) > 3) continue;
+        if(rd_function_get_n_instructions(f) != 3) continue;
 
         RDAddress func_addr = rd_function_get_address(f);
 
