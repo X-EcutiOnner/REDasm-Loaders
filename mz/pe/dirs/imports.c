@@ -35,7 +35,7 @@ static void _pe_read_thunks(RDContext* ctx, PEFormat* pe, RDReader* r,
         bool is_ord =
             !!(thunk & (is64 ? IMAGE_ORDINAL_FLAG64 : IMAGE_ORDINAL_FLAG32));
 
-        rd_library_type(ctx, addr, thunktype, 0, RD_TYPE_ISPOINTER);
+        rd_library_type(ctx, addr, thunktype, 0, RD_TYPE_PTR);
 
         if(is_ord) {
             if(isft)
