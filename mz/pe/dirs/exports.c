@@ -139,8 +139,10 @@ bool pe_read_exports(RDContext* ctx, PEFormat* pe) {
         const RDSegment* seg = rd_find_segment(ctx, entry_va);
         if(!seg) continue;
 
-        if((seg->perm & RD_SP_X) && !_pe_is_linker_boundary(name))
+        if((seg->perm & RD_SP_X) && !_pe_is_linker_boundary(name)) {
+            entry_va = pe_norm(ctx, pe, entry_va);
             rd_library_function(ctx, entry_va, name);
+        }
         else
             rd_library_name(ctx, entry_va, name);
     }

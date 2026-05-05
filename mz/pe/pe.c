@@ -142,7 +142,8 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     }
 
     RDAddress ep;
-    if(pe_from_rva(pe, pe->entrypoint, &ep)) rd_set_entry_point(ctx, ep, NULL);
+    if(pe_from_rva(pe, pe->entrypoint, &ep))
+        rd_set_entry_point(ctx, pe_norm(ctx, pe, ep), NULL);
     return true;
 }
 

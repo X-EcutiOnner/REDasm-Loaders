@@ -22,3 +22,5 @@ int pe_get_bits(PEFormat* pe);
 
 bool pe_read_section_header(PEFormat* pe, RDReader* r, int idx,
                             ImageSectionHeader* s);
+
+RDAddress pe_norm(RDContext* ctx, const PEFormat* pe, RDAddress address);
