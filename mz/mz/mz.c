@@ -79,11 +79,11 @@ static bool mz_load(RDLoader* ldr, RDContext* ctx) {
     RDAddress cs_base = (RDAddress)(dh->e_cs + MZ_LOAD_SEGMENT) * MZ_PARAGRAPH;
     RDAddress entry = cs_base + dh->e_ip;
 
-    rd_library_regval(ctx, entry, "cs",
-                      (RDRegValue)(dh->e_cs + MZ_LOAD_SEGMENT) * MZ_PARAGRAPH);
-    rd_library_regval(ctx, entry, "ss",
-                      (RDRegValue)(dh->e_ss + MZ_LOAD_SEGMENT) * MZ_PARAGRAPH);
-    rd_library_regval(ctx, entry, "sp", dh->e_sp);
+    rd_library_sregval(ctx, entry, "cs",
+                       (RDRegValue)(dh->e_cs + MZ_LOAD_SEGMENT) * MZ_PARAGRAPH);
+    rd_library_sregval(ctx, entry, "ss",
+                       (RDRegValue)(dh->e_ss + MZ_LOAD_SEGMENT) * MZ_PARAGRAPH);
+    rd_set_regval(ctx, "sp", dh->e_sp);
 
     rd_set_entry_point(ctx, entry, NULL);
     return true;

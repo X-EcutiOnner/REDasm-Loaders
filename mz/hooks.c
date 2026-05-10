@@ -20,31 +20,31 @@ static void _x86_read_com_string(RDContext* ctx, const RDInstruction* instr,
 
 static void _x86_dos_21h(RDContext* ctx, RDInstruction* instr) {
     RDRegValue ah;
-    if(!rd_get_regval(ctx, instr->address, "ah", &ah)) return;
+    if(!rd_get_regval(ctx, "ah", &ah)) return;
 
     switch(ah) {
         case 0x09: { // print
             RDRegValue dx;
-            if(!rd_get_regval(ctx, instr->address, "dx", &dx)) return;
+            if(!rd_get_regval(ctx, "dx", &dx)) return;
             _x86_read_com_string(ctx, instr, (RDAddress)dx, '$');
             break;
         }
 
         case 0x3d: { // file open
             RDRegValue dx;
-            if(!rd_get_regval(ctx, instr->address, "dx", &dx)) return;
+            if(!rd_get_regval(ctx, "dx", &dx)) return;
             _x86_read_com_string(ctx, instr, (RDAddress)dx, '\0');
             break;
         }
 
         case 0x40: { // file write (bx=1 stdout, bx=2 stderr)
             RDRegValue bx, cx, dx;
-            if(!rd_get_regval(ctx, instr->address, "bx", &bx)) return;
+            if(!rd_get_regval(ctx, "bx", &bx)) return;
             if(bx != 1 && bx != 2)
                 break; // only stdout/stderr are likely strings
 
-            if(!rd_get_regval(ctx, instr->address, "cx", &cx)) return;
-            if(!rd_get_regval(ctx, instr->address, "dx", &dx)) return;
+            if(!rd_get_regval(ctx, "cx", &cx)) return;
+            if(!rd_get_regval(ctx, "dx", &dx)) return;
 
             if(cx > 0) {
                 rd_add_xref(ctx, instr->address, (RDAddress)dx, RD_DR_READ);

@@ -66,12 +66,12 @@ static bool psx_load(RDLoader* ldr, RDContext* ctx) {
 
     if(h->gp0) {
         rd_library_name(ctx, h->gp0, "PSX_gp0");
-        rd_library_regval(ctx, h->pc0, "$gp", h->gp0);
+        rd_library_sregval(ctx, h->pc0, "$gp", h->gp0);
     }
 
     if(h->s_addr) {
         rd_library_name(ctx, h->s_addr, "PSX_sp0");
-        rd_library_regval(ctx, h->pc0, "$sp", h->s_addr);
+        rd_library_sregval(ctx, h->pc0, "$sp", h->s_addr);
     }
 
     rd_register_hook(ctx, "redasm.finalize", psx_bios_autorename_hook);

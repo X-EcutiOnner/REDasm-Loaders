@@ -209,11 +209,11 @@ const char* elf_read_shname(const ELFFormat* self, RDReader* reader,
 RDAddress elf_norm(RDContext* ctx, const ELFFormat* elf, RDAddress address) {
     if(elf->ehdr.e_machine == ELF_EM_ARM) {
         if(address & 1) {
-            rd_library_regval(ctx, address & ~1, "T", 1);
+            rd_library_sregval(ctx, address & ~1, "T", 1);
             return address & ~1;
         }
 
-        rd_library_regval(ctx, address, "T", 0);
+        rd_library_sregval(ctx, address, "T", 0);
     }
 
     return address;

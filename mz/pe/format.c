@@ -45,11 +45,11 @@ bool pe_read_section_header(PEFormat* pe, RDReader* r, int idx,
 RDAddress pe_norm(RDContext* ctx, const PEFormat* pe, RDAddress address) {
     if(pe->fileheader.Machine == IMAGE_FILE_MACHINE_ARM) {
         if(address & 1) {
-            rd_library_regval(ctx, address & ~1, "T", 1);
+            rd_library_sregval(ctx, address & ~1, "T", 1);
             return address & ~1;
         }
 
-        rd_library_regval(ctx, address, "T", 0);
+        rd_library_sregval(ctx, address, "T", 0);
     }
 
     return address;
