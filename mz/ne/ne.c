@@ -109,7 +109,7 @@ static bool ne_load(RDLoader* ldr, RDContext* ctx) {
 
 static RDLoader* ne_create(const RDLoaderPlugin* plugin) {
     RD_UNUSED(plugin);
-    return rd_alloc(sizeof(NEFormat));
+    return rd_alloc0(1, sizeof(NEFormat));
 }
 
 static void ne_destroy(RDLoader* ldr) { rd_free(ldr); }

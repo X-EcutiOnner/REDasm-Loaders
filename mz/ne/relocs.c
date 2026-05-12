@@ -1,5 +1,6 @@
 #include "relocs.h"
 #include "common/win16_ordinals.h"
+#include <redasm/redasm.h>
 
 // Relocation source types
 #define NE_RELOC_SRC_LOBYTE 0x00

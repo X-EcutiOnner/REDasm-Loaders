@@ -4,10 +4,10 @@ NEEntrySlice ne_entryslice_create(NEFormat* ne, RDContext* ctx) {
     const NEHeader* hdr = &ne->header;
 
     // Upper Bound: max entries = EntryTableLength / 3 (min entry size)
-    u32 max_orinals = (hdr->EntryTableLength / 3) + 1;
+    u32 max_ordinals = (hdr->EntryTableLength / 3) + 1;
 
     NEEntrySlice entries = {
-        .data = rd_alloc(max_orinals * sizeof(RDAddress)),
+        .data = rd_alloc0(max_ordinals, sizeof(RDAddress)),
     };
 
     RDReader* r = rd_get_input_reader(ctx);
@@ -50,7 +50,7 @@ NEEntrySlice ne_entryslice_create(NEFormat* ne, RDContext* ctx) {
 
                 pos += (2 * sizeof(u8)) + (2 * sizeof(u16));
 
-                if(ordinal <= max_orinals && seg_num_byte &&
+                if(ordinal <= max_ordinals && seg_num_byte &&
                    seg_num_byte <= hdr->SegCount) {
                     entries.data[ordinal - 1] =
                         ne_seg_address(seg_num_byte, offset);
@@ -66,7 +66,7 @@ NEEntrySlice ne_entryslice_create(NEFormat* ne, RDContext* ctx) {
 
                 pos += sizeof(u8) + sizeof(u16);
 
-                if(ordinal <= max_orinals && seg_indicator <= hdr->SegCount) {
+                if(ordinal <= max_ordinals && seg_indicator <= hdr->SegCount) {
                     entries.data[ordinal - 1] =
                         ne_seg_address(seg_indicator, offset);
                 }

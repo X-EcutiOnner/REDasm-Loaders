@@ -1,6 +1,5 @@
 #include "exe.h"
 #include "biosfunc.h"
-#include <stdlib.h>
 #include <string.h>
 
 #define PSXEXE_SIGNATURE_SIZE 8
@@ -22,10 +21,10 @@ typedef struct PsxExeHeader {
 
 static RDLoader* psx_create(const RDLoaderPlugin* plugin) {
     RD_UNUSED(plugin);
-    return calloc(1, sizeof(PsxExeHeader));
+    return rd_alloc0(1, sizeof(PsxExeHeader));
 }
 
-static void psx_destroy(RDLoader* ldr) { free(ldr); }
+static void psx_destroy(RDLoader* ldr) { rd_free(ldr); }
 
 static bool psx_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     PsxExeHeader* h = (PsxExeHeader*)ldr;

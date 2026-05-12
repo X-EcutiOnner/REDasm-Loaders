@@ -1,7 +1,6 @@
 #include "constants.h"
 #include "format.h"
 #include <redasm/redasm.h>
-#include <stdlib.h>
 
 static u32 _elf_prg_perm(u32 p_flags) {
     u32 perm = 0;
@@ -194,10 +193,10 @@ static void _elf_load_symbols(ELFFormat* elf, RDContext* ctx) {
 
 static RDLoader* elf_create(const RDLoaderPlugin* plugin) {
     RD_UNUSED(plugin);
-    return calloc(1, sizeof(ELFFormat));
+    return rd_alloc0(1, sizeof(ELFFormat));
 }
 
-static void elf_destroy(RDLoader* ldr) { free(ldr); }
+static void elf_destroy(RDLoader* ldr) { rd_free(ldr); }
 
 static bool elf_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     ELFFormat* elf = (ELFFormat*)ldr;

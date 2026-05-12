@@ -148,7 +148,7 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
 
 static RDLoader* pe_create(const RDLoaderPlugin* plugin) {
     RD_UNUSED(plugin);
-    return rd_alloc(sizeof(PEFormat));
+    return rd_alloc0(1, sizeof(PEFormat));
 }
 
 static void pe_destroy(RDLoader* ldr) { rd_free(ldr); }

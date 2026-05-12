@@ -4,8 +4,8 @@ NEModuleSlice ne_moduleslice_create(NEFormat* ne, RDContext* ctx) {
     const NEHeader* hdr = &ne->header;
 
     NEModuleSlice modules = {
-        .names = (char**)rd_alloc(hdr->ModRefs * sizeof(char*)),
-        .imports = (NEImport*)rd_alloc(hdr->ModRefs * sizeof(NEImport)),
+        .names = (char**)rd_alloc0(hdr->ModRefs, sizeof(char*)),
+        .imports = (NEImport*)rd_alloc0(hdr->ModRefs, sizeof(NEImport)),
         .length = hdr->ModRefs,
     };
 

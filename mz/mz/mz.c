@@ -86,7 +86,7 @@ static bool mz_load(RDLoader* ldr, RDContext* ctx) {
 
 static RDLoader* mz_create(const RDLoaderPlugin* plugin) {
     RD_UNUSED(plugin);
-    return rd_alloc(sizeof(MZDosHeader));
+    return rd_alloc0(1, sizeof(MZDosHeader));
 }
 
 static void mz_destroy(RDLoader* ldr) { rd_free(ldr); }
