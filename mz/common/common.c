@@ -1,8 +1,8 @@
 #include "common.h"
 
-bool mz_read_dos_header(RDReader* r, ImageDosHeader* dh) {
+bool mz_read_dos_header(RDReader* r, MZDosHeader* dh) {
     rd_reader_read_le16(r, &dh->e_magic);
-    if(dh->e_magic != IMAGE_DOS_SIGNATURE) return false;
+    if(dh->e_magic != MZ_DOS_SIGNATURE) return false;
 
     rd_reader_read_le16(r, &dh->e_cblp);
     rd_reader_read_le16(r, &dh->e_cp);
@@ -32,10 +32,20 @@ bool mz_read_dos_header(RDReader* r, ImageDosHeader* dh) {
     return !rd_reader_has_error(r);
 }
 
-u32 mz_read_signature(RDReader* r, const ImageDosHeader* dh) {
-    if(!dh->e_lfanew) return 0;
+u32 mz_match_signature(RDReader* r, const MZDosHeader* dh, u32 sig) {
+    if(!dh->e_lfanew) return sig == 0; // no extended header: plain MZ
 
     rd_reader_seek(r, dh->e_lfanew);
-    u32 sig;
-    return rd_reader_read_le32(r, &sig) ? sig : 0;
+
+    u16 sig16;
+    if(!rd_reader_read_le16(r, &sig16)) return false;
+
+    // PE needs all 4 bytes ("PE\0\0")
+    if(sig == MZ_NT_SIGNATURE) {
+        u16 hi;
+        if(!rd_reader_read_le16(r, &hi)) return false;
+        return sig16 == (u16)MZ_NT_SIGNATURE && hi == 0x0000;
+    }
+
+    return sig16 == (u16)sig;
 }

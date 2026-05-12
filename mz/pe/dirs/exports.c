@@ -134,7 +134,6 @@ bool pe_read_exports(RDContext* ctx, PEFormat* pe) {
         if(!name) continue;
 
         rd_library_type(ctx, exportname_va, "char", n + 1, RD_TYPE_NONE);
-        rd_set_exported(ctx, entry_va, name);
 
         const RDSegment* seg = rd_find_segment(ctx, entry_va);
         if(!seg) continue;
@@ -145,6 +144,8 @@ bool pe_read_exports(RDContext* ctx, PEFormat* pe) {
         }
         else
             rd_library_name(ctx, entry_va, name);
+
+        rd_set_exported(ctx, entry_va, name);
     }
 
     return true;

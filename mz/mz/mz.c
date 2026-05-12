@@ -1,5 +1,5 @@
 #include "mz.h"
-#include "common.h"
+#include "common/common.h"
 #include "hooks.h"
 #include <stdlib.h>
 
@@ -18,11 +18,11 @@ typedef struct MZReloc {
     u16 segment;
 } MZReloc;
 
-static usize _mz_header_size(const ImageDosHeader* dh) {
+static usize _mz_header_size(const MZDosHeader* dh) {
     return (usize)dh->e_cparhdr * MZ_PARAGRAPH;
 }
 
-static usize _mz_image_size(const ImageDosHeader* dh) {
+static usize _mz_image_size(const MZDosHeader* dh) {
     usize size = (usize)dh->e_cp * 512;
     if(dh->e_cblp) size -= 512 - dh->e_cblp;
     return size;
@@ -52,19 +52,15 @@ static usize _mz_image_size(const ImageDosHeader* dh) {
 // }
 
 static bool mz_parse(RDLoader* ldr, const RDLoaderRequest* req) {
-    ImageDosHeader* dh = (ImageDosHeader*)ldr;
+    MZDosHeader* dh = (MZDosHeader*)ldr;
     if(!mz_read_dos_header(req->input, dh)) return false;
-
-    u32 sig = mz_read_signature(req->input, dh);
-
-    return sig != IMAGE_NT_SIGNATURE && (u16)sig != IMAGE_NE_SIGNATURE &&
-           (u16)sig != IMAGE_LE_SIGNATURE;
+    return mz_match_signature(req->input, dh, 0);
 }
 
 static bool mz_load(RDLoader* ldr, RDContext* ctx) {
     mz_register_dos_hooks(ctx);
 
-    ImageDosHeader* dh = (ImageDosHeader*)ldr;
+    MZDosHeader* dh = (MZDosHeader*)ldr;
     usize hdrbytes = _mz_header_size(dh);
     usize imgsize = _mz_image_size(dh) - hdrbytes;
 
@@ -91,7 +87,7 @@ static bool mz_load(RDLoader* ldr, RDContext* ctx) {
 
 static RDLoader* mz_create(const RDLoaderPlugin* plugin) {
     RD_UNUSED(plugin);
-    return calloc(1, sizeof(ImageDosHeader));
+    return calloc(1, sizeof(MZDosHeader));
 }
 
 static void mz_destroy(RDLoader* ldr) { free(ldr); }

@@ -1,5 +1,5 @@
 #include "com.h"
-#include "common.h"
+#include "common/common.h"
 #include "hooks.h"
 #include <string.h>
 
@@ -8,7 +8,7 @@
 
 static bool com_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     RD_UNUSED(ldr);
-    if(rd_reader_expect_le16(req->input, IMAGE_DOS_SIGNATURE)) return false;
+    if(rd_reader_expect_le16(req->input, MZ_DOS_SIGNATURE)) return false;
 
     return !rd_stricmp(req->ext, "COM") &&
            rd_reader_get_length(req->input) <= 0xff00;

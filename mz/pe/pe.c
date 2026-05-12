@@ -12,8 +12,8 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     PEFormat* pe = (PEFormat*)ldr;
     if(!mz_read_dos_header(req->input, &pe->dosheader)) return false;
 
-    u32 sig = mz_read_signature(req->input, &pe->dosheader);
-    if(sig != IMAGE_NT_SIGNATURE) return false;
+    if(!mz_match_signature(req->input, &pe->dosheader, MZ_NT_SIGNATURE))
+        return false;
 
     rd_reader_read_le16(req->input, &pe->fileheader.Machine);
     rd_reader_read_le16(req->input, &pe->fileheader.NumberOfSections);

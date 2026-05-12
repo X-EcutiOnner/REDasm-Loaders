@@ -11,7 +11,15 @@ add_library(${PROJECT_NAME} SHARED)
 target_sources(${PROJECT_NAME} 
     PRIVATE
         com/com.c
+        common/common.c
+        common/win16_ordinals.c
         mz/mz.c
+        ne/entries.c
+        ne/exports.c
+        ne/format.c
+        ne/modules.c
+        ne/ne.c
+        ne/relocs.c
         pe/dirs/debug.c
         pe/dirs/exceptions.c
         pe/dirs/exports.c
@@ -19,7 +27,6 @@ target_sources(${PROJECT_NAME}
         pe/dirs/resources.c
         pe/format.c
         pe/pe.c
-        common.c
         hooks.c
         plugin.c
 )
