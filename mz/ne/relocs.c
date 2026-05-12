@@ -19,8 +19,8 @@
 // Patch the relocation source location in the flags buffer.
 // src_type determines what kind of value lives at from_addr.
 // tgt_seg and tgt_offset are in NE segment-index space (1-based).
-static void ne_patch_reloc(RDContext* ctx, u8 src_type, RDAddress from_addr,
-                           u16 tgt_seg, u16 tgt_offset) {
+static void _ne_patch_reloc(RDContext* ctx, u8 src_type, RDAddress from_addr,
+                            u16 tgt_seg, u16 tgt_offset) {
     switch(src_type) {
         case NE_RELOC_SRC_OFFSET:
             // 16-bit offset within segment: write the flat offset word.
@@ -123,7 +123,7 @@ void ne_load_relocs(NEFormat* ne, RDContext* ctx, u32 file_off, u16 seg_idx,
                     to_addr = ne_seg_address(tgt_seg, tgt_offset);
                 }
 
-                ne_patch_reloc(ctx, src_type, from_addr, tgt_seg, tgt_offset);
+                _ne_patch_reloc(ctx, src_type, from_addr, tgt_seg, tgt_offset);
                 rd_add_xref(ctx, from_addr, to_addr, RD_DR_ADDRESS);
 
                 // Seek back: IMPORTNAME case may have displaced the reader
@@ -160,7 +160,7 @@ void ne_load_relocs(NEFormat* ne, RDContext* ctx, u32 file_off, u16 seg_idx,
                 // within that slot is import_addr & 0xFFFF
                 u16 imp_seg = ne->header.SegCount + mod_idx;
                 u16 imp_off = (u16)(import_addr & 0xFFFF);
-                ne_patch_reloc(ctx, src_type, from_addr, imp_seg, imp_off);
+                _ne_patch_reloc(ctx, src_type, from_addr, imp_seg, imp_off);
                 rd_add_xref(ctx, from_addr, import_addr, RD_DR_ADDRESS);
                 break;
             }
@@ -201,7 +201,7 @@ void ne_load_relocs(NEFormat* ne, RDContext* ctx, u32 file_off, u16 seg_idx,
 
                 u16 imp_seg = ne->header.SegCount + mod_idx;
                 u16 imp_off = (u16)(import_addr & 0xFFFF);
-                ne_patch_reloc(ctx, src_type, from_addr, imp_seg, imp_off);
+                _ne_patch_reloc(ctx, src_type, from_addr, imp_seg, imp_off);
                 rd_add_xref(ctx, from_addr, import_addr, RD_DR_ADDRESS);
 
                 // Restore reader position to the next reloc record

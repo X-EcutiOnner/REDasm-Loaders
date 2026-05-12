@@ -1,7 +1,7 @@
 #include "imports.h"
 
-#define IMAGE_ORDINAL_FLAG64 0x8000000000000000ULL
-#define IMAGE_ORDINAL_FLAG32 0x80000000
+#define PE_ORDINAL_FLAG64 0x8000000000000000ULL
+#define PE_ORDINAL_FLAG32 0x80000000
 
 static void _pe_read_thunks(RDContext* ctx, PEFormat* pe, RDReader* r,
                             const char* module, RDAddress va, bool isft) {
@@ -33,7 +33,7 @@ static void _pe_read_thunks(RDContext* ctx, PEFormat* pe, RDReader* r,
         }
 
         bool is_ord =
-            !!(thunk & (is64 ? IMAGE_ORDINAL_FLAG64 : IMAGE_ORDINAL_FLAG32));
+            !!(thunk & (is64 ? PE_ORDINAL_FLAG64 : PE_ORDINAL_FLAG32));
 
         rd_library_type(ctx, addr, thunktype, 0, RD_TYPE_PTR);
 
@@ -80,7 +80,7 @@ static void _pe_read_thunks(RDContext* ctx, PEFormat* pe, RDReader* r,
 
 void pe_register_imports_types(RDContext* ctx) {
     // clang-format off
-    RDTypeDef* importdescr = rd_typedef_create_struct("IMAGE_IMPORT_DESCRIPTOR", ctx);
+    RDTypeDef* importdescr = rd_typedef_create_struct("PE_IMPORT_DESCRIPTOR", ctx);
     rd_typedef_add_member(importdescr, "u32", "OriginalFirstThunk", 0, RD_TYPE_NONE, ctx);
     rd_typedef_add_member(importdescr, "u32", "TimeDateStamp", 0, RD_TYPE_NONE, ctx);
     rd_typedef_add_member(importdescr, "u32", "ForwarderChain", 0, RD_TYPE_NONE, ctx);
@@ -91,7 +91,7 @@ void pe_register_imports_types(RDContext* ctx) {
 }
 
 bool pe_read_imports(RDContext* ctx, PEFormat* pe) {
-    ImageDataDirectory d = pe->datadir[IMAGE_DIRECTORY_ENTRY_IMPORT];
+    PEDataDirectory d = pe->datadir[PE_DIRECTORY_ENTRY_IMPORT];
 
     RDAddress va;
     if(!pe_from_rva(pe, d.VirtualAddress, &va)) return false;
@@ -99,7 +99,7 @@ bool pe_read_imports(RDContext* ctx, PEFormat* pe) {
     RDReader* r = rd_get_reader(ctx);
 
     while(true) {
-        ImageImportDescriptor importdescr;
+        PEImportDescriptor importdescr;
         rd_reader_seek(r, va);
         rd_reader_read_le32(r, &importdescr.OriginalFirstThunk);
         rd_reader_read_le32(r, &importdescr.TimeDateStamp);
@@ -108,7 +108,7 @@ bool pe_read_imports(RDContext* ctx, PEFormat* pe) {
         rd_reader_read_le32(r, &importdescr.FirstThunk);
         if(rd_reader_has_error(r)) return false;
 
-        rd_library_type(ctx, va, "IMAGE_IMPORT_DESCRIPTOR", 0, RD_TYPE_NONE);
+        rd_library_type(ctx, va, "PE_IMPORT_DESCRIPTOR", 0, RD_TYPE_NONE);
 
         // null terminator descriptor
         if(!importdescr.OriginalFirstThunk && !importdescr.Name &&
@@ -136,7 +136,7 @@ bool pe_read_imports(RDContext* ctx, PEFormat* pe) {
         if(has_ft) _pe_read_thunks(ctx, pe, r, module, ft_va, true);
 
         rd_free(module);
-        va += rd_size_of(ctx, "IMAGE_IMPORT_DESCRIPTOR", 0);
+        va += rd_size_of(ctx, "PE_IMPORT_DESCRIPTOR", 0);
     }
 
     return true;

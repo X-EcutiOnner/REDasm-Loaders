@@ -2,29 +2,26 @@
 
 #include "pe/format.h"
 
-#define IMAGE_RESOURCE_NAME_IS_STRING 0x80000000
-#define IMAGE_RESOURCE_DATA_IS_DIRECTORY 0x80000000
-
-typedef struct {
+typedef struct PEResourceDirectory {
     u32 Characteristics;
     u32 TimeDateStamp;
     u16 MajorVersion;
     u16 MinorVersion;
     u16 NumberOfNamedEntries;
     u16 NumberOfIdEntries;
-} ImageResourceDirectory;
+} PEResourceDirectory;
 
-typedef struct {
+typedef struct PEResourceDirectoryEntry {
     u32 NameOffset;
     u32 OffsetToData;
-} ImageResourceDirectoryEntry;
+} PEResourceDirectoryEntry;
 
-typedef struct {
+typedef struct PEResourceDataEntry {
     u32 OffsetToData;
     u32 Size;
     u32 CodePage;
     u32 Reserved;
-} ImageResourceDataEntry;
+} PEResourceDataEntry;
 
 void pe_register_resources_types(RDContext* ctx);
 bool pe_read_resources(RDContext* ctx, PEFormat* pe);

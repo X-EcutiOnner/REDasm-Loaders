@@ -2,7 +2,7 @@
 
 #include "pe/format.h"
 
-typedef struct ImageDebugDirectory {
+typedef struct PEDebugDirectory {
     u32 Characteristics;
     u32 TimeDateStamp;
     u16 MajorVersion;
@@ -11,7 +11,7 @@ typedef struct ImageDebugDirectory {
     u32 SizeOfData;
     u32 AddressOfRawData;
     u32 PointerToRawData;
-} ImageDebugDirectory;
+} PEDebugDirectory;
 
 typedef struct CvInfoPdb20 {
     u32 CvSignature;

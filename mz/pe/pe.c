@@ -5,7 +5,6 @@
 #include "pe/dirs/exports.h"
 #include "pe/dirs/imports.h"
 #include "pe/dirs/resources.h"
-#include <stdlib.h>
 #include <string.h>
 
 static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
@@ -33,13 +32,13 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     rd_reader_read_le32(req->input, &pe->opt32.AddressOfEntryPoint);
     rd_reader_read_le32(req->input, &pe->opt32.BaseOfCode);
 
-    if(pe->opt32.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC) {
+    if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR32_MAGIC) {
         rd_reader_read_le32(req->input, &pe->opt32.BaseOfData);
         rd_reader_read_le32(req->input, &pe->opt32.ImageBase);
         pe->imagebase = pe->opt32.ImageBase;
         pe->entrypoint = pe->opt32.AddressOfEntryPoint;
     }
-    else if(pe->opt32.Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC) {
+    else if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) {
         rd_reader_read_le64(req->input, &pe->opt64.ImageBase);
         pe->imagebase = pe->opt64.ImageBase;
         pe->entrypoint = pe->opt64.AddressOfEntryPoint;
@@ -62,7 +61,7 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     rd_reader_read_le16(req->input, &pe->opt32.Subsystem);
     rd_reader_read_le16(req->input, &pe->opt32.DllCharacteristics);
 
-    if(pe->opt32.Magic == IMAGE_NT_OPTIONAL_HDR32_MAGIC) {
+    if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR32_MAGIC) {
         rd_reader_read_le32(req->input, &pe->opt32.SizeOfStackReserve);
         rd_reader_read_le32(req->input, &pe->opt32.SizeOfStackCommit);
         rd_reader_read_le32(req->input, &pe->opt32.SizeOfHeapReserve);
@@ -70,7 +69,7 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
         rd_reader_read_le32(req->input, &pe->opt32.LoaderFlags);
         rd_reader_read_le32(req->input, &pe->opt32.NumberOfRvaAndSizes);
     }
-    else if(pe->opt32.Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC) {
+    else if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) {
         rd_reader_read_le64(req->input, &pe->opt64.SizeOfStackReserve);
         rd_reader_read_le64(req->input, &pe->opt64.SizeOfStackCommit);
         rd_reader_read_le64(req->input, &pe->opt64.SizeOfHeapReserve);
@@ -79,7 +78,7 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
         rd_reader_read_le32(req->input, &pe->opt32.NumberOfRvaAndSizes);
     }
 
-    for(int i = 0; i < IMAGE_NUMBEROF_DIRECTORY_ENTRIES; i++) {
+    for(int i = 0; i < PE_NUMBER_OF_DIRECTORY_ENTRIES; i++) {
         rd_reader_read_le32(req->input, &pe->datadir[i].VirtualAddress);
         rd_reader_read_le32(req->input, &pe->datadir[i].Size);
     }
@@ -98,24 +97,24 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     pe_register_debug_types(ctx);
 
     for(usize i = 0; i < pe->fileheader.NumberOfSections; i++) {
-        ImageSectionHeader s;
+        PESectionHeader s;
         if(!pe_read_section_header(pe, r, i, &s)) continue;
 
         u32 perm = 0;
 
-        if(s.Characteristics & IMAGE_SCN_MEM_EXECUTE ||
+        if(s.Characteristics & PE_SCN_MEM_EXECUTE ||
            (pe->entrypoint >= s.VirtualAddress &&
             pe->entrypoint < s.VirtualAddress + s.VirtualSize)) {
             perm |= RD_SP_X;
         }
 
-        if(s.Characteristics & IMAGE_SCN_MEM_READ) perm |= RD_SP_R;
-        if(s.Characteristics & IMAGE_SCN_MEM_WRITE) perm |= RD_SP_W;
+        if(s.Characteristics & PE_SCN_MEM_READ) perm |= RD_SP_R;
+        if(s.Characteristics & PE_SCN_MEM_WRITE) perm |= RD_SP_W;
 
-        // if section name is exactly IMAGE_SIZEOF_SHORT_NAME long
+        // if section name is exactly PE_SIZEOF_SHORT_NAME long
         // it needs a null terminator (not included in PE Header)
-        char section_name[IMAGE_SIZEOF_SHORT_NAME + 1] = {0};
-        memcpy(section_name, s.Name, IMAGE_SIZEOF_SHORT_NAME);
+        char section_name[PE_SIZE_OF_SHORT_NAME + 1] = {0};
+        memcpy(section_name, s.Name, PE_SIZE_OF_SHORT_NAME);
 
         RDAddress addr = pe->imagebase + s.VirtualAddress;
         rd_map_segment_n(ctx, section_name, addr, s.VirtualSize, perm);
@@ -149,10 +148,10 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
 
 static RDLoader* pe_create(const RDLoaderPlugin* plugin) {
     RD_UNUSED(plugin);
-    return calloc(1, sizeof(PEFormat));
+    return rd_alloc(sizeof(PEFormat));
 }
 
-static void pe_destroy(RDLoader* ldr) { free(ldr); }
+static void pe_destroy(RDLoader* ldr) { rd_free(ldr); }
 
 static const char* pe_get_processor(RDLoader* ldr, const RDContext* ctx) {
     RD_UNUSED(ctx);
@@ -160,14 +159,13 @@ static const char* pe_get_processor(RDLoader* ldr, const RDContext* ctx) {
     PEFormat* pe = (PEFormat*)ldr;
 
     switch(pe->fileheader.Machine) {
-        case IMAGE_FILE_MACHINE_ARM: {
-            if(pe->opt32.Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC)
-                return "arm64_le";
+        case PE_FILE_MACHINE_ARM: {
+            if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) return "arm64_le";
             return "arm32_le";
         }
 
-        case IMAGE_FILE_MACHINE_AMD64: return "x86_64";
-        case IMAGE_FILE_MACHINE_I386: return "x86_32";
+        case PE_FILE_MACHINE_AMD64: return "x86_64";
+        case PE_FILE_MACHINE_I386: return "x86_32";
         default: break;
     }
 

@@ -2,7 +2,7 @@
 
 #include "pe/format.h"
 
-typedef struct ImageExportDirectory {
+typedef struct PEExportDirectory {
     u32 Characteristics;
     u32 TimeDateStamp;
     u16 MajorVersion;
@@ -14,7 +14,7 @@ typedef struct ImageExportDirectory {
     u32 AddressOfFunctions;
     u32 AddressOfNames;
     u32 AddressOfNameOrdinals;
-} ImageExportDirectory;
+} PEExportDirectory;
 
 void pe_register_exports_types(RDContext* ctx);
 bool pe_read_exports(RDContext* ctx, PEFormat* pe);

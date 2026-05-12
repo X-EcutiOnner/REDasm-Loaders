@@ -3,21 +3,20 @@
 #include "constants.h"
 #include <redasm/redasm.h>
 
-#define IMAGE_FIRST_SECTION(nt)                                                \
-    (ImageSectionHeader*)((char*)(nt) + nt->FileHeader.SizeOfOptionalHeader +  \
-                          0x18)
+#define PE_FIRST_SECTION(nt)                                                   \
+    (PESectionHeader*)((char*)(nt) + nt->FileHeader.SizeOfOptionalHeader + 0x18)
 
-typedef struct ImageFileHeader {
+typedef struct PEFileHeader {
     u16 Machine, NumberOfSections;
     u32 TimeDateStamp, PointerToSymbolTable, NumberOfSymbols;
     u16 SizeOfOptionalHeader, Characteristics;
-} ImageFileHeader;
+} PEFileHeader;
 
-typedef struct ImageDataDirectory {
+typedef struct PEDataDirectory {
     u32 VirtualAddress, Size;
-} ImageDataDirectory;
+} PEDataDirectory;
 
-typedef struct ImageOptionalHeader32 {
+typedef struct PEOptionalHeader32 {
     u16 Magic;
     u8 MajorLinkerVersion, MinorLinkerVersion;
     u32 SizeOfCode, SizeOfInitializedData, SizeOfUninitializedData;
@@ -31,10 +30,10 @@ typedef struct ImageOptionalHeader32 {
     u32 SizeOfStackReserve, SizeOfStackCommit;
     u32 SizeOfHeapReserve, SizeOfHeapCommit;
     u32 LoaderFlags, NumberOfRvaAndSizes;
-    // ImageDataDirectory DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
-} ImageOptionalHeader32;
+    // PEDataDirectory DataDirectory[PE_NUMBER_OF_DIRECTORY_ENTRIES];
+} PEOptionalHeader32;
 
-typedef struct ImageOptionalHeader64 {
+typedef struct PEOptionalHeader64 {
     u16 Magic;
     u8 MajorLinkerVersion, MinorLinkerVersion;
     u32 SizeOfCode, SizeOfInitializedData, SizeOfUninitializedData;
@@ -49,19 +48,19 @@ typedef struct ImageOptionalHeader64 {
     u64 SizeOfStackReserve, SizeOfStackCommit;
     u64 SizeOfHeapReserve, SizeOfHeapCommit;
     u32 LoaderFlags, NumberOfRvaAndSizes;
-    // ImageDataDirectory DataDirectory[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
-} ImageOptionalHeader64;
+    // PEDataDirectory DataDirectory[PE_NUMBER_OF_DIRECTORY_ENTRIES];
+} PEOptionalHeader64;
 
-// typedef struct ImageNtHeaders {
+// typedef struct PENtHeaders {
 //     u32 Signature;
-//     ImageFileHeader FileHeader;
-// } ImageNtHeaders;
+//     PEFileHeader FileHeader;
+// } PENtHeaders;
 
-typedef struct ImageSectionHeader {
-    char Name[IMAGE_SIZEOF_SHORT_NAME];
+typedef struct PESectionHeader {
+    char Name[PE_SIZE_OF_SHORT_NAME];
     u32 VirtualSize, VirtualAddress;
     u32 SizeOfRawData, PointerToRawData;
     u32 PointerToRelocations, PointerToLinenumbers;
     u16 NumberOfRelocations, NumberOfLinenumbers;
     u32 Characteristics;
-} ImageSectionHeader;
+} PESectionHeader;

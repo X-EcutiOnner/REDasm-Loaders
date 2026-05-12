@@ -6,7 +6,7 @@
 #include "ne/modules.h"
 #include "ne/relocs.h"
 
-static void ne_set_entry_point(NEFormat* ne, RDContext* ctx) {
+static void _ne_set_entry_point(NEFormat* ne, RDContext* ctx) {
     const NEHeader* hdr = &ne->header;
 
     u16 cs_idx = (u16)(hdr->EntryPoint >> 16);
@@ -100,7 +100,7 @@ static bool ne_load(RDLoader* ldr, RDContext* ctx) {
     }
 
     // 6. Set entry point and seed segment registers
-    ne_set_entry_point(ne, ctx);
+    _ne_set_entry_point(ne, ctx);
 
     ne_moduleslice_destroy(&modules);
     ne_entryslice_destroy(&entries);

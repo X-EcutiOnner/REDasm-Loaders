@@ -7,20 +7,20 @@ typedef struct PEFormat {
     RDAddress imagebase;
     RDAddress entrypoint;
     MZDosHeader dosheader;
-    ImageFileHeader fileheader;
+    PEFileHeader fileheader;
 
     union {
-        ImageOptionalHeader32 opt32;
-        ImageOptionalHeader64 opt64;
+        PEOptionalHeader32 opt32;
+        PEOptionalHeader64 opt64;
     };
 
-    ImageDataDirectory datadir[IMAGE_NUMBEROF_DIRECTORY_ENTRIES];
+    PEDataDirectory datadir[PE_NUMBER_OF_DIRECTORY_ENTRIES];
 } PEFormat;
 
 bool pe_from_rva(PEFormat* pe, RDAddress rva, RDAddress* va);
 int pe_get_bits(PEFormat* pe);
 
 bool pe_read_section_header(PEFormat* pe, RDReader* r, int idx,
-                            ImageSectionHeader* s);
+                            PESectionHeader* s);
 
 RDAddress pe_norm(RDContext* ctx, const PEFormat* pe, RDAddress address);

@@ -1,7 +1,6 @@
 #include "mz.h"
 #include "common/common.h"
 #include "hooks.h"
-#include <stdlib.h>
 
 // References
 // - http://www.techhelpmanual.com/354-exe_file_header_layout.html
@@ -87,10 +86,10 @@ static bool mz_load(RDLoader* ldr, RDContext* ctx) {
 
 static RDLoader* mz_create(const RDLoaderPlugin* plugin) {
     RD_UNUSED(plugin);
-    return calloc(1, sizeof(MZDosHeader));
+    return rd_alloc(sizeof(MZDosHeader));
 }
 
-static void mz_destroy(RDLoader* ldr) { free(ldr); }
+static void mz_destroy(RDLoader* ldr) { rd_free(ldr); }
 
 static const char* mz_get_processor(RDLoader* ldr, const RDContext* ctx) {
     RD_UNUSED(ldr);

@@ -8,10 +8,10 @@ bool pe_from_rva(PEFormat* pe, RDAddress rva, RDAddress* va) {
 
 int pe_get_bits(PEFormat* pe) {
     switch(pe->fileheader.Machine) {
-        case IMAGE_FILE_MACHINE_AMD64: return 64;
+        case PE_FILE_MACHINE_AMD64: return 64;
 
-        case IMAGE_FILE_MACHINE_ARM: {
-            if(pe->opt32.Magic == IMAGE_NT_OPTIONAL_HDR64_MAGIC) return 64;
+        case PE_FILE_MACHINE_ARM: {
+            if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) return 64;
             break;
         }
 
@@ -22,13 +22,13 @@ int pe_get_bits(PEFormat* pe) {
 }
 
 bool pe_read_section_header(PEFormat* pe, RDReader* r, int idx,
-                            ImageSectionHeader* s) {
+                            PESectionHeader* s) {
     const u32 FIRST_SECTION =
         pe->dosheader.e_lfanew + pe->fileheader.SizeOfOptionalHeader + 0x18;
 
-    rd_reader_seek(r, FIRST_SECTION + (idx * sizeof(ImageSectionHeader)));
+    rd_reader_seek(r, FIRST_SECTION + (idx * sizeof(PESectionHeader)));
 
-    rd_reader_read(r, &s->Name, IMAGE_SIZEOF_SHORT_NAME);
+    rd_reader_read(r, &s->Name, PE_SIZE_OF_SHORT_NAME);
     rd_reader_read_le32(r, &s->VirtualSize);
     rd_reader_read_le32(r, &s->VirtualAddress);
     rd_reader_read_le32(r, &s->SizeOfRawData);
@@ -43,7 +43,7 @@ bool pe_read_section_header(PEFormat* pe, RDReader* r, int idx,
 }
 
 RDAddress pe_norm(RDContext* ctx, const PEFormat* pe, RDAddress address) {
-    if(pe->fileheader.Machine == IMAGE_FILE_MACHINE_ARM) {
+    if(pe->fileheader.Machine == PE_FILE_MACHINE_ARM) {
         if(address & 1) {
             rd_library_sregval(ctx, address & ~1, "T", 1);
             return address & ~1;

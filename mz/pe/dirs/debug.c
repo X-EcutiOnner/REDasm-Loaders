@@ -1,22 +1,22 @@
 #include "debug.h"
 
-#define IMAGE_DEBUG_TYPE_UNKNOWN 0
-#define IMAGE_DEBUG_TYPE_COFF 1
-#define IMAGE_DEBUG_TYPE_CODEVIEW 2
-#define IMAGE_DEBUG_TYPE_FPO 3
-#define IMAGE_DEBUG_TYPE_MISC 4
-#define IMAGE_DEBUG_TYPE_EXCEPTION 5
-#define IMAGE_DEBUG_TYPE_FIXUP 6
-#define IMAGE_DEBUG_TYPE_OMAP_TO_SRC 7
-#define IMAGE_DEBUG_TYPE_OMAP_FROM_SRC 8
-#define IMAGE_DEBUG_TYPE_BORLAND 9
-#define IMAGE_DEBUG_TYPE_RESERVED10 10
-#define IMAGE_DEBUG_TYPE_CLSID 11
-#define IMAGE_DEBUG_TYPE_VC_FEATURE 12
-#define IMAGE_DEBUG_TYPE_POGO 13
-#define IMAGE_DEBUG_TYPE_ILTCG 14
-#define IMAGE_DEBUG_TYPE_MPX 15
-#define IMAGE_DEBUG_TYPE_REPRO 16
+#define PE_DEBUG_TYPE_UNKNOWN 0
+#define PE_DEBUG_TYPE_COFF 1
+#define PE_DEBUG_TYPE_CODEVIEW 2
+#define PE_DEBUG_TYPE_FPO 3
+#define PE_DEBUG_TYPE_MISC 4
+#define PE_DEBUG_TYPE_EXCEPTION 5
+#define PE_DEBUG_TYPE_FIXUP 6
+#define PE_DEBUG_TYPE_OMAP_TO_SRC 7
+#define PE_DEBUG_TYPE_OMAP_FROM_SRC 8
+#define PE_DEBUG_TYPE_BORLAND 9
+#define PE_DEBUG_TYPE_RESERVED10 10
+#define PE_DEBUG_TYPE_CLSID 11
+#define PE_DEBUG_TYPE_VC_FEATURE 12
+#define PE_DEBUG_TYPE_POGO 13
+#define PE_DEBUG_TYPE_ILTCG 14
+#define PE_DEBUG_TYPE_MPX 15
+#define PE_DEBUG_TYPE_REPRO 16
 
 // little-endian u32 of ASCII magic
 #define PE_CVINFO_PDB20_SIGNATURE 0x3031424E // 'NB10'
@@ -24,7 +24,7 @@
 
 void pe_register_debug_types(RDContext* ctx) {
     // clang-format off
-    RDTypeDef* dbgdir = rd_typedef_create_struct("IMAGE_DEBUG_DIRECTORY", ctx);
+    RDTypeDef* dbgdir = rd_typedef_create_struct("PE_DEBUG_DIRECTORY", ctx);
     rd_typedef_add_member(dbgdir, "u32", "Characteristics",   0, RD_TYPE_NONE, ctx);
     rd_typedef_add_member(dbgdir, "u32", "TimeDateStamp",     0, RD_TYPE_NONE, ctx);
     rd_typedef_add_member(dbgdir, "u16", "MajorVersion",      0, RD_TYPE_NONE, ctx);
@@ -51,7 +51,7 @@ void pe_register_debug_types(RDContext* ctx) {
 }
 
 static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
-                              const ImageDebugDirectory* dbgdir) {
+                              const PEDebugDirectory* dbgdir) {
     RDAddress dbgva;
     if(!pe_from_rva(pe, dbgdir->AddressOfRawData, &dbgva)) return;
 
@@ -82,13 +82,13 @@ static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
 }
 
 bool pe_read_debug(RDContext* ctx, PEFormat* pe) {
-    ImageDataDirectory d = pe->datadir[IMAGE_DIRECTORY_ENTRY_DEBUG];
+    PEDataDirectory d = pe->datadir[PE_DIRECTORY_ENTRY_DEBUG];
     if(!d.VirtualAddress || !d.Size) return false;
 
     RDAddress va;
     if(!pe_from_rva(pe, d.VirtualAddress, &va)) return false;
 
-    usize entrysize = rd_size_of(ctx, "IMAGE_DEBUG_DIRECTORY", 0);
+    usize entrysize = rd_size_of(ctx, "PE_DEBUG_DIRECTORY", 0);
     usize n = d.Size / entrysize;
     RDReader* r = rd_get_reader(ctx);
 
@@ -96,7 +96,7 @@ bool pe_read_debug(RDContext* ctx, PEFormat* pe) {
         RDAddress entry_va = va + (i * entrysize);
         rd_reader_seek(r, entry_va);
 
-        ImageDebugDirectory dbgdir;
+        PEDebugDirectory dbgdir;
         rd_reader_read_le32(r, &dbgdir.Characteristics);
         rd_reader_read_le32(r, &dbgdir.TimeDateStamp);
         rd_reader_read_le16(r, &dbgdir.MajorVersion);
@@ -107,10 +107,9 @@ bool pe_read_debug(RDContext* ctx, PEFormat* pe) {
         rd_reader_read_le32(r, &dbgdir.PointerToRawData);
         if(rd_reader_has_error(r)) break;
 
-        rd_library_type(ctx, entry_va, "IMAGE_DEBUG_DIRECTORY", 0,
-                        RD_TYPE_NONE);
+        rd_library_type(ctx, entry_va, "PE_DEBUG_DIRECTORY", 0, RD_TYPE_NONE);
 
-        if(dbgdir.Type == IMAGE_DEBUG_TYPE_CODEVIEW)
+        if(dbgdir.Type == PE_DEBUG_TYPE_CODEVIEW)
             _pe_read_codeview(ctx, pe, r, &dbgdir);
     }
 
