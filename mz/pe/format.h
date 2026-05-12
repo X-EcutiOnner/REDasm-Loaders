@@ -2,6 +2,9 @@
 
 #include "common/common.h"
 #include "header.h"
+#include "pe/classifier.h"
+
+#define PE_LOG_TAG "PE"
 
 typedef struct PEFormat {
     RDAddress imagebase;
@@ -15,12 +18,14 @@ typedef struct PEFormat {
     };
 
     PEDataDirectory datadir[PE_NUMBER_OF_DIRECTORY_ENTRIES];
+
+    PEClassification classification;
 } PEFormat;
 
-bool pe_from_rva(PEFormat* pe, RDAddress rva, RDAddress* va);
-int pe_get_bits(PEFormat* pe);
+bool pe_from_rva(const PEFormat* pe, RDAddress rva, RDAddress* va);
+int pe_get_bits(const PEFormat* pe);
 
-bool pe_read_section_header(PEFormat* pe, RDReader* r, int idx,
+bool pe_read_section_header(RDContext* ctx, PEFormat* pe, int idx,
                             PESectionHeader* s);
 
 RDAddress pe_norm(RDContext* ctx, const PEFormat* pe, RDAddress address);

@@ -3,19 +3,39 @@
 #define PE_RESOURCE_NAME_IS_STRING 0x80000000
 #define PE_RESOURCE_DATA_IS_DIRECTORY 0x80000000
 
-static void _pe_read_resource_dir(RDContext* ctx, PEFormat* pe, RDReader* r,
-                                  RDAddress base, RDAddress va, int depth) {
+static bool _pe_resource_read_dir(RDReader* r, PEResourceDirectory* dir) {
+    rd_reader_read_le32(r, &dir->Characteristics);
+    rd_reader_read_le32(r, &dir->TimeDateStamp);
+    rd_reader_read_le16(r, &dir->MajorVersion);
+    rd_reader_read_le16(r, &dir->MinorVersion);
+    rd_reader_read_le16(r, &dir->NumberOfNamedEntries);
+    rd_reader_read_le16(r, &dir->NumberOfIdEntries);
+    return !rd_reader_has_error(r);
+}
+
+static bool _pe_resource_read_dir_entry(RDReader* r,
+                                        PEResourceDirectoryEntry* entry) {
+    rd_reader_read_le32(r, &entry->NameOffset);
+    rd_reader_read_le32(r, &entry->OffsetToData);
+    return !rd_reader_has_error(r);
+}
+
+static bool _pe_resource_read_data_entry(RDReader* r,
+                                         PEResourceDataEntry* dataentry) {
+    rd_reader_read_le32(r, &dataentry->OffsetToData);
+    rd_reader_read_le32(r, &dataentry->Size);
+    rd_reader_read_le32(r, &dataentry->CodePage);
+    rd_reader_read_le32(r, &dataentry->Reserved);
+    return !rd_reader_has_error(r);
+}
+
+static void _pe_resource_read_dirs(RDContext* ctx, PEFormat* pe, RDReader* r,
+                                   RDAddress base, RDAddress va, int depth) {
     if(depth > 3) return; // max 3 levels deep in PE resources
 
     PEResourceDirectory resdir;
     rd_reader_seek(r, va);
-    rd_reader_read_le32(r, &resdir.Characteristics);
-    rd_reader_read_le32(r, &resdir.TimeDateStamp);
-    rd_reader_read_le16(r, &resdir.MajorVersion);
-    rd_reader_read_le16(r, &resdir.MinorVersion);
-    rd_reader_read_le16(r, &resdir.NumberOfNamedEntries);
-    rd_reader_read_le16(r, &resdir.NumberOfIdEntries);
-    if(rd_reader_has_error(r)) return;
+    if(!_pe_resource_read_dir(r, &resdir)) return;
 
     rd_library_type(ctx, va, "PE_RESOURCE_DIRECTORY", 0, RD_TYPE_NONE);
 
@@ -25,9 +45,7 @@ static void _pe_read_resource_dir(RDContext* ctx, PEFormat* pe, RDReader* r,
     for(u16 i = 0; i < total; i++) {
         PEResourceDirectoryEntry entry;
         rd_reader_seek(r, entry_va);
-        rd_reader_read_le32(r, &entry.NameOffset);
-        rd_reader_read_le32(r, &entry.OffsetToData);
-        if(rd_reader_has_error(r)) break;
+        if(!_pe_resource_read_dir_entry(r, &entry)) break;
 
         rd_library_type(ctx, entry_va, "PE_RESOURCE_DIRECTORY_ENTRY", 0,
                         RD_TYPE_NONE);
@@ -35,7 +53,7 @@ static void _pe_read_resource_dir(RDContext* ctx, PEFormat* pe, RDReader* r,
         if(entry.OffsetToData & PE_RESOURCE_DATA_IS_DIRECTORY) {
             RDAddress subdir_va =
                 base + (entry.OffsetToData & ~PE_RESOURCE_DATA_IS_DIRECTORY);
-            _pe_read_resource_dir(ctx, pe, r, base, subdir_va, depth + 1);
+            _pe_resource_read_dirs(ctx, pe, r, base, subdir_va, depth + 1);
         }
         else {
             RDAddress dataentry_va = base + entry.OffsetToData;
@@ -44,11 +62,7 @@ static void _pe_read_resource_dir(RDContext* ctx, PEFormat* pe, RDReader* r,
 
             PEResourceDataEntry dataentry;
             rd_reader_seek(r, dataentry_va);
-            rd_reader_read_le32(r, &dataentry.OffsetToData);
-            rd_reader_read_le32(r, &dataentry.Size);
-            rd_reader_read_le32(r, &dataentry.CodePage);
-            rd_reader_read_le32(r, &dataentry.Reserved);
-            if(rd_reader_has_error(r)) break;
+            if(!_pe_resource_read_data_entry(r, &dataentry)) break;
 
             RDAddress data_va;
 
@@ -63,7 +77,7 @@ static void _pe_read_resource_dir(RDContext* ctx, PEFormat* pe, RDReader* r,
     }
 }
 
-void pe_register_resources_types(RDContext* ctx) {
+void pe_resources_register_types(RDContext* ctx) {
     // clang-format off
     RDTypeDef* resdir = rd_typedef_create_struct("PE_RESOURCE_DIRECTORY", ctx);
     rd_typedef_add_member(resdir, "u32", "Characteristics", 0, RD_TYPE_NONE, ctx);
@@ -88,7 +102,7 @@ void pe_register_resources_types(RDContext* ctx) {
     // clang-format on
 }
 
-bool pe_read_resources(RDContext* ctx, PEFormat* pe) {
+bool pe_resources_read(RDContext* ctx, PEFormat* pe) {
     PEDataDirectory d = pe->datadir[PE_DIRECTORY_ENTRY_RESOURCE];
 
     RDAddress va;
@@ -97,6 +111,6 @@ bool pe_read_resources(RDContext* ctx, PEFormat* pe) {
     rd_library_type(ctx, va, "PE_RESOURCE_DIRECTORY", 0, RD_TYPE_NONE);
 
     RDReader* r = rd_get_reader(ctx);
-    _pe_read_resource_dir(ctx, pe, r, va, va, 0);
+    _pe_resource_read_dirs(ctx, pe, r, va, va, 0);
     return true;
 }

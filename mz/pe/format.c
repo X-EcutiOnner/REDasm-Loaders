@@ -1,12 +1,12 @@
 #include "format.h"
 
-bool pe_from_rva(PEFormat* pe, RDAddress rva, RDAddress* va) {
+bool pe_from_rva(const PEFormat* pe, RDAddress rva, RDAddress* va) {
     if(!rva) return false;
     *va = pe->imagebase + rva;
     return true;
 }
 
-int pe_get_bits(PEFormat* pe) {
+int pe_get_bits(const PEFormat* pe) {
     switch(pe->fileheader.Machine) {
         case PE_FILE_MACHINE_AMD64: return 64;
 
@@ -21,11 +21,12 @@ int pe_get_bits(PEFormat* pe) {
     return 32;
 }
 
-bool pe_read_section_header(PEFormat* pe, RDReader* r, int idx,
+bool pe_read_section_header(RDContext* ctx, PEFormat* pe, int idx,
                             PESectionHeader* s) {
     const u32 FIRST_SECTION =
         pe->dosheader.e_lfanew + pe->fileheader.SizeOfOptionalHeader + 0x18;
 
+    RDReader* r = rd_get_input_reader(ctx);
     rd_reader_seek(r, FIRST_SECTION + (idx * sizeof(PESectionHeader)));
 
     rd_reader_read(r, &s->Name, PE_SIZE_OF_SHORT_NAME);

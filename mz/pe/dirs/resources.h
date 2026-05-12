@@ -23,5 +23,5 @@ typedef struct PEResourceDataEntry {
     u32 Reserved;
 } PEResourceDataEntry;
 
-void pe_register_resources_types(RDContext* ctx);
-bool pe_read_resources(RDContext* ctx, PEFormat* pe);
+void pe_resources_register_types(RDContext* ctx);
+bool pe_resources_read(RDContext* ctx, PEFormat* pe);

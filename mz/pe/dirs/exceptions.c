@@ -1,7 +1,7 @@
 #include "exceptions.h"
 #include <inttypes.h>
 
-void pe_register_exceptions_types(RDContext* ctx) {
+void pe_exceptions_register_types(RDContext* ctx) {
     // clang-format off
     RDTypeDef* rfe = rd_typedef_create_struct(" PE_RUNTIME_FUNCTION_ENTRY", ctx);
     rd_typedef_add_member(rfe, "u32", "BeginAddress",    0, RD_TYPE_NONE, ctx);

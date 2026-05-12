@@ -21,10 +21,12 @@ target_sources(${PROJECT_NAME}
         ne/ne.c
         ne/relocs.c
         pe/dirs/debug.c
+        pe/dirs/dotnet.c
         pe/dirs/exceptions.c
         pe/dirs/exports.c
         pe/dirs/imports.c
         pe/dirs/resources.c
+        pe/classifier.c
         pe/format.c
         pe/pe.c
         hooks.c

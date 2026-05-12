@@ -33,7 +33,7 @@ static bool _pe_is_linker_boundary(const char* name) {
     return false;
 }
 
-void pe_register_exports_types(RDContext* ctx) {
+void pe_exports_register_types(RDContext* ctx) {
     // clang-format off
     RDTypeDef* exportdir = rd_typedef_create_struct("PE_EXPORT_DIRECTORY", ctx);
     rd_typedef_add_member(exportdir, "u32", "Characteristics", 0, RD_TYPE_NONE, ctx);

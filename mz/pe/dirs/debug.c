@@ -22,7 +22,7 @@
 #define PE_CVINFO_PDB20_SIGNATURE 0x3031424E // 'NB10'
 #define PE_CVINFO_PDB70_SIGNATURE 0x53445352 // 'RSDS'
 
-void pe_register_debug_types(RDContext* ctx) {
+void pe_debug_register_types(RDContext* ctx) {
     // clang-format off
     RDTypeDef* dbgdir = rd_typedef_create_struct("PE_DEBUG_DIRECTORY", ctx);
     rd_typedef_add_member(dbgdir, "u32", "Characteristics",   0, RD_TYPE_NONE, ctx);

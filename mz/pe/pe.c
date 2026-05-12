@@ -1,6 +1,7 @@
 #include "pe.h"
 #include "format.h"
 #include "pe/dirs/debug.h"
+#include "pe/dirs/dotnet.h"
 #include "pe/dirs/exceptions.h"
 #include "pe/dirs/exports.h"
 #include "pe/dirs/imports.h"
@@ -88,17 +89,16 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
 
 static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     PEFormat* pe = (PEFormat*)ldr;
-    RDReader* r = rd_get_input_reader(ctx);
 
-    pe_register_exports_types(ctx);
-    pe_register_imports_types(ctx);
-    pe_register_resources_types(ctx);
-    pe_register_exceptions_types(ctx);
-    pe_register_debug_types(ctx);
+    pe_exports_register_types(ctx);
+    pe_imports_register_types(ctx);
+    pe_resources_register_types(ctx);
+    pe_exceptions_register_types(ctx);
+    pe_debug_register_types(ctx);
 
     for(usize i = 0; i < pe->fileheader.NumberOfSections; i++) {
         PESectionHeader s;
-        if(!pe_read_section_header(pe, r, i, &s)) continue;
+        if(!pe_read_section_header(ctx, pe, i, &s)) continue;
 
         u32 perm = 0;
 
@@ -124,9 +124,14 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
                                                        : s.SizeOfRawData);
     }
 
+    if(pe_dotnet_get_major(ctx, pe)) {
+        rd_log(RD_LOG_FAIL, PE_LOG_TAG, ".NET is not supported");
+        return false;
+    }
+
     pe_read_exports(ctx, pe);
-    pe_read_imports(ctx, pe);
-    pe_read_resources(ctx, pe);
+    pe_imports_read(ctx, pe);
+    pe_resources_read(ctx, pe);
     pe_read_exceptions(ctx, pe);
     pe_read_debug(ctx, pe);
 
@@ -143,6 +148,9 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     RDAddress ep;
     if(pe_from_rva(pe, pe->entrypoint, &ep))
         rd_set_entry_point(ctx, pe_norm(ctx, pe, ep), NULL);
+
+    pe->classification = pe_classify(pe, ctx);
+    pe_classify_print(pe->classification);
     return true;
 }
 

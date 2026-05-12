@@ -26,5 +26,5 @@ typedef struct CvInfoPdb70 {
     u32 Age;
 } CvInfoPdb70;
 
-void pe_register_debug_types(RDContext* ctx);
+void pe_debug_register_types(RDContext* ctx);
 bool pe_read_debug(RDContext* ctx, PEFormat* pe);
