@@ -122,5 +122,5 @@ PEClassification pe_classify(const PEFormat* pe, RDContext* ctx) {
 
 void pe_classify_print(PEClassification c) {
     if(c >= rd_count_of(PE_CLASSIFY_STRING) || !PE_CLASSIFY_STRING[c]) return;
-    rd_log(RD_LOG_INFO, PE_LOG_TAG, "detected %s", PE_CLASSIFY_STRING[c]);
+    rd_log(RD_LOG_INFO, PE_PLUGIN_ID, "detected %s", PE_CLASSIFY_STRING[c]);
 }

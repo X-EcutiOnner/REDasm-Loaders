@@ -13,7 +13,7 @@ void pe_exceptions_register_types(RDContext* ctx) {
 
 bool pe_read_exceptions(RDContext* ctx, PEFormat* pe) {
     // exception directory is only present on x64 (and Itanium)
-    if(pe_get_bits(pe) != 64) return false;
+    if(pe->bits != 64) return false;
 
     PEDataDirectory d = pe->datadir[PE_DIRECTORY_ENTRY_EXCEPTION];
     if(!d.VirtualAddress || !d.Size) return false;

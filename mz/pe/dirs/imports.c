@@ -4,52 +4,59 @@
 #define PE_ORDINAL_FLAG64 0x8000000000000000ULL
 #define PE_ORDINAL_FLAG32 0x80000000
 
-static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
-                            const char* module, RDAddress va, bool isft) {
-    bool is64 = pe_get_bits(pe) == 64;
-    const int THUNK_SIZE = is64 ? sizeof(u64) : sizeof(u32);
-    const char* thunktype = is64 ? "u64" : "u32";
-    const char* prefix = isft ? "ft_" : "oft_";
+typedef struct PEThunk {
+    union {
+        u64 rva;
+        u16 ordinal;
+    };
 
+    bool is_ord;
+} PEThunk;
+
+static bool _pe_read_thunk(RDAddress va, RDReader* r, const PEFormat* pe,
+                           PEThunk* thunk) {
     rd_reader_seek(r, va);
 
+    if(pe->bits == 64) {
+        if(rd_reader_read_le64(r, &thunk->rva)) {
+            thunk->is_ord = !!(thunk->rva & PE_ORDINAL_FLAG64);
+            if(thunk->is_ord) thunk->ordinal = thunk->rva & 0xFFFF;
+        }
+    }
+    else {
+        u32 t;
+        if(rd_reader_read_le32(r, &t)) {
+            thunk->is_ord = !!(t & PE_ORDINAL_FLAG32);
+            thunk->rva = (u64)t;
+            if(thunk->is_ord) thunk->ordinal = thunk->rva & 0xFFFF;
+        }
+    }
+
+    return !rd_reader_has_error(r);
+}
+
+static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
+                            const char* module, RDAddress oft_va,
+                            RDAddress ft_va) {
+    rd_reader_seek(r, ft_va);
+
     while(true) {
-        RDAddress addr = rd_reader_get_pos(r);
-        u64 thunk = 0;
+        PEThunk oft_thunk, ft_thunk;
+        if(!_pe_read_thunk(oft_va, r, pe, &oft_thunk)) break;
+        if(!_pe_read_thunk(ft_va, r, pe, &ft_thunk)) break;
 
-        if(is64) {
-            rd_reader_read_le64(r, &thunk);
-        }
-        else {
-            u32 t;
-            rd_reader_read_le32(r, &t);
-            thunk = (u64)t;
-        }
-
-        if(rd_reader_has_error(r)) break;
-
-        if(!thunk) {
-            rd_library_type(ctx, addr, thunktype, 0, RD_TYPE_NONE);
+        if(!oft_thunk.rva) { // null terminator: type both slots
+            rd_library_type(ctx, oft_va, pe->thunk_type, 0, RD_TYPE_NONE);
+            rd_library_type(ctx, ft_va, pe->thunk_type, 0, RD_TYPE_NONE);
             break;
         }
 
-        bool is_ord =
-            !!(thunk & (is64 ? PE_ORDINAL_FLAG64 : PE_ORDINAL_FLAG32));
+        rd_library_type(ctx, oft_va, pe->thunk_type, 0, RD_TYPE_PTR);
+        rd_library_type(ctx, ft_va, pe->thunk_type, 0, RD_TYPE_PTR);
 
-        rd_library_type(ctx, addr, thunktype, 0, RD_TYPE_PTR);
-
-        if(is_ord) {
-            if(isft)
-                rd_set_imported_ord(ctx, addr, module, NULL, thunk & 0xFFFF);
-            else {
-                rd_library_name(ctx, addr,
-                                rd_format("%s%s_ord%u", prefix, module,
-                                          (u32)(thunk & 0xFFFF)));
-            }
-        }
-        else {
+        if(!oft_thunk.is_ord) {
             RDAddress thunkva;
-            pe_from_rva(pe, thunk, &thunkva);
+            pe_from_rva(pe, oft_thunk.rva, &thunkva);
 
             rd_reader_seek(r, thunkva);
             rd_reader_read_le16(r, NULL); // skip hint
@@ -62,20 +69,18 @@ static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
                             RD_TYPE_NONE);
 
             rd_library_name(ctx, thunkva,
-                            rd_format("%s%s_%s_hint", prefix, module, name));
+                            rd_format("%s_%s_hint", module, name));
 
             rd_library_name(ctx, thunkva + sizeof(u16),
-                            rd_format("%s%s_%s_name", prefix, module, name));
+                            rd_format("%s_%s_name", module, name));
 
-            if(isft)
-                rd_set_imported(ctx, addr, module, name);
-            else {
-                rd_library_name(ctx, addr,
-                                rd_format("%s%s_%s", prefix, module, name));
-            }
+            rd_set_imported(ctx, ft_va, module, name);
         }
+        else
+            rd_set_imported_ord(ctx, ft_va, module, oft_thunk.ordinal);
 
-        rd_reader_seek(r, addr + THUNK_SIZE);
+        ft_va += pe->thunk_size;
+        oft_va += pe->thunk_size;
     }
 }
 
@@ -129,8 +134,9 @@ bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
         bool has_ft = pe_from_rva(pe, desc.FirstThunk, &ft_va);
         bool has_oft = pe_from_rva(pe, desc.OriginalFirstThunk, &oft_va);
 
-        if(has_oft) _pe_read_thunks(ctx, pe, r, mod, oft_va, false);
-        if(has_ft) _pe_read_thunks(ctx, pe, r, mod, ft_va, true);
+        if(!has_oft) oft_va = ft_va;
+        if(!has_ft) ft_va = oft_va;
+        if(has_oft && has_ft) _pe_read_thunks(ctx, pe, r, mod, oft_va, ft_va);
 
         rd_free(mod);
         va += rd_size_of(ctx, "PE_IMPORT_DESCRIPTOR", 0);

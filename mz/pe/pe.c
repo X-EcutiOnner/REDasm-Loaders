@@ -89,6 +89,7 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
 
 static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     PEFormat* pe = (PEFormat*)ldr;
+    pe_set_bits(pe);
 
     pe_exports_register_types(ctx);
     pe_imports_register_types(ctx);
@@ -125,7 +126,7 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     }
 
     if(pe_dotnet_get_major(ctx, pe)) {
-        rd_log(RD_LOG_FAIL, PE_LOG_TAG, ".NET is not supported");
+        rd_log(RD_LOG_FAIL, PE_PLUGIN_ID, ".NET is not supported");
         return false;
     }
 
@@ -182,7 +183,7 @@ static const char* pe_get_processor(RDLoader* ldr, const RDContext* ctx) {
 
 const RDLoaderPlugin PE_LOADER = {
     .level = RD_API_LEVEL,
-    .id = "win_pe",
+    .id = PE_PLUGIN_ID,
     .name = "Portable Executable",
     .create = pe_create,
     .destroy = pe_destroy,

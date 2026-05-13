@@ -4,7 +4,7 @@
 #include "header.h"
 #include "pe/classifier.h"
 
-#define PE_LOG_TAG "PE"
+#define PE_PLUGIN_ID "win_pe"
 
 typedef struct PEFormat {
     RDAddress imagebase;
@@ -20,10 +20,13 @@ typedef struct PEFormat {
     PEDataDirectory datadir[PE_NUMBER_OF_DIRECTORY_ENTRIES];
 
     PEClassification classification;
+    const char* thunk_type;
+    int thunk_size;
+    int bits;
 } PEFormat;
 
 bool pe_from_rva(const PEFormat* pe, RDAddress rva, RDAddress* va);
-int pe_get_bits(const PEFormat* pe);
+void pe_set_bits(PEFormat* pe);
 
 bool pe_read_section_header(RDContext* ctx, PEFormat* pe, int idx,
                             PESectionHeader* s);

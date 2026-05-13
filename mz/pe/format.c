@@ -6,19 +6,32 @@ bool pe_from_rva(const PEFormat* pe, RDAddress rva, RDAddress* va) {
     return true;
 }
 
-int pe_get_bits(const PEFormat* pe) {
+void pe_set_bits(PEFormat* pe) {
     switch(pe->fileheader.Machine) {
-        case PE_FILE_MACHINE_AMD64: return 64;
+        case PE_FILE_MACHINE_AMD64: {
+            pe->thunk_size = sizeof(u64);
+            pe->thunk_type = "u64";
+            pe->bits = 64;
+            return;
+        }
 
         case PE_FILE_MACHINE_ARM: {
-            if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) return 64;
+            if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) {
+                pe->thunk_size = sizeof(u64);
+                pe->thunk_type = "u64";
+                pe->bits = 64;
+                return;
+            }
+
             break;
         }
 
         default: break;
     }
 
-    return 32;
+    pe->thunk_size = sizeof(u32);
+    pe->thunk_type = "u32";
+    pe->bits = 32;
 }
 
 bool pe_read_section_header(RDContext* ctx, PEFormat* pe, int idx,
