@@ -75,6 +75,11 @@ static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
                             rd_format("%s_%s_name", module, name));
 
             rd_set_imported(ctx, ft_va, module, name);
+
+            if(oft_va != ft_va) {
+                rd_library_name(ctx, oft_va,
+                                rd_format("oft_%s_%s", module, name));
+            }
         }
         else
             rd_set_imported_ord(ctx, ft_va, module, oft_thunk.ordinal);
