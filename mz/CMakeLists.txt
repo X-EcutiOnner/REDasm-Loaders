@@ -29,6 +29,7 @@ target_sources(${PROJECT_NAME}
         pe/vb/components.c
         pe/vb/decompiler.c
         pe/vb/format.c
+        pe/vb/ordinals.c
         pe/classifier.c
         pe/format.c
         pe/pe.c

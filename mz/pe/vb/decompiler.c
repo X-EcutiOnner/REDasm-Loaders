@@ -2,6 +2,7 @@
 #include "pe/format.h"
 #include "pe/vb/components.h"
 #include "pe/vb/format.h"
+#include "pe/vb/ordinals.h"
 #include <string.h>
 
 static const RDInstruction PE_VB_ENTRY_MATCH[] = {
@@ -20,18 +21,6 @@ static const RDInstruction PE_VB_EVENT_ENTRY[] = {
     },
 };
 
-typedef struct PEVBAnalyzer {
-    RDContext* context;
-    RDReader* reader;
-    RDAddress base;
-    PEVBHeader header;
-    PEVBProjectInfo proj_info;
-    PEVBGuiTable gui_table;
-    PEVBObjectTable object_table;
-    PEVBObjectTree object_tree;
-    PEVBPublicObjectDescriptor pub_obj_descr;
-} PEVBAnalyzer;
-
 static inline bool
 _pe_vb_has_optional_info(const PEVBPublicObjectDescriptor* descr,
                          const PEVBObjectInfo* objinfo, const RDContext* ctx) {
@@ -39,18 +28,18 @@ _pe_vb_has_optional_info(const PEVBPublicObjectDescriptor* descr,
            objinfo->lpConstants;
 }
 
-static void _pe_vb_apply_header_str(const PEVBAnalyzer* a, u32 offset,
-                                    const char* name) {
+static void _pe_vb_apply_header_str(RDAddress vb_base, RDReader* r, u32 offset,
+                                    const char* name, RDContext* ctx) {
     if(!offset) return;
 
-    RDAddress address = a->base + offset;
+    RDAddress address = vb_base + offset;
     usize n;
 
-    rd_reader_seek(a->reader, address);
-    if(!rd_reader_read_str(a->reader, &n)) return;
+    rd_reader_seek(r, address);
+    if(!rd_reader_read_str(r, &n)) return;
 
-    rd_library_type(a->context, address, "char", n + 1, RD_TYPE_NONE);
-    rd_library_name(a->context, address, name);
+    rd_library_type(ctx, address, "char", n + 1, RD_TYPE_NONE);
+    rd_library_name(ctx, address, name);
 }
 
 static void _pe_vb_decompiler_decode(RDAddress address, const char* name,
@@ -90,6 +79,24 @@ static void _pe_vb_decompiler_events(const PEVBPublicObjectDescriptor* descr,
     rd_reader_seek(r, ctrlinfo->lpEventInfo);
     if(!pe_vb_read_event_info(r, &evinfo)) goto cleanup;
 
+    rd_library_type(ctx, ctrlinfo->lpEventInfo, "PE_VB_EVENT_INFO", 0,
+                    RD_TYPE_NONE);
+
+    if(evinfo.lpEVENT_SINK_QueryInterface) {
+        rd_library_function(ctx, evinfo.lpEVENT_SINK_QueryInterface,
+                            "EVENT_SINK_QueryInterface");
+    }
+
+    if(evinfo.lpEVENT_SINK_AddRef) {
+        rd_library_function(ctx, evinfo.lpEVENT_SINK_AddRef,
+                            "EVENT_SINK_AddRef");
+    }
+
+    if(evinfo.lpEVENT_SINK_Release) {
+        rd_library_function(ctx, evinfo.lpEVENT_SINK_Release,
+                            "EVENT_SINK_Release");
+    }
+
     const char* const* events = c->events;
 
     while(*events) {
@@ -118,8 +125,11 @@ static bool _pe_vb_decompiler_controls(const PEVBPublicObjectDescriptor* descr,
 
         PEVBControlInfo ctrlinfo;
 
-        if(pe_vb_read_control_info(r, &ctrlinfo))
+        if(pe_vb_read_control_info(r, &ctrlinfo)) {
+            rd_library_type(ctx, address, "PE_VB_CONTROL_INFO", 0,
+                            RD_TYPE_NONE);
             _pe_vb_decompiler_events(descr, &ctrlinfo, r, ctx);
+        }
 
         address += n;
     }
@@ -150,11 +160,27 @@ static bool _pe_vb_decompiler_obj(RDAddress address, RDReader* r,
            !opt_objinfo.lpControls)
             goto done;
 
+        rd_library_type(ctx, descr.lpObjectInfo, "PE_VB_OBJECT_INFO_OPTIONAL",
+                        0, RD_TYPE_NONE);
+
         return _pe_vb_decompiler_controls(&descr, &opt_objinfo, r, ctx);
     }
 
 done:
     return !rd_reader_has_error(r);
+}
+
+static void _pe_rename_imports(RDContext* ctx) {
+    RDAddressSlice imports = rd_get_all_imported(ctx);
+
+    const RDAddress* it;
+    rd_slice_each(it, imports) {
+        RDImported imp;
+        if(!rd_get_imported(ctx, *it, &imp)) continue;
+
+        const char* name = pe_vb_ordinals_get_name(&imp);
+        if(name) rd_set_imported(ctx, *it, imp.module, name);
+    }
 }
 
 static bool pe_vb_decompiler_is_enabled(RDContext* ctx,
@@ -183,60 +209,71 @@ static void pe_vb_decompiler_execute(RDContext* ctx) {
 
     pe_vb_register_types(ctx);
 
-    PEVBAnalyzer a = {
-        .context = ctx,
-        .reader = rd_get_reader(ctx),
-        .base = instrs[0].operands[0].addr,
-    };
+    RDReader* r = rd_get_reader(ctx);
+    RDAddress vb_base = instrs[0].operands[0].addr;
 
-    rd_reader_seek(a.reader, a.base);
+    PEVBHeader vb_header;
+    PEVBProjectInfo proj_info;
+    PEVBGuiTable gui_table;
+    PEVBObjectTable object_table;
+    PEVBObjectTree object_tree;
+    PEVBPublicObjectDescriptor pub_obj_descr;
 
-    if(!pe_vb_read_header(a.reader, &a.header) ||
-       strncmp("VB5!", a.header.szVbMagic, PE_VB_SIGNATURE_SIZE) != 0)
+    rd_reader_seek(r, vb_base);
+
+    if(!pe_vb_read_header(r, &vb_header) ||
+       strncmp("VB5!", vb_header.szVbMagic, PE_VB_SIGNATURE_SIZE) != 0)
         return;
 
-    _pe_vb_apply_header_str(&a, a.header.bszProjectDescription, "vb_proj_desc");
-    _pe_vb_apply_header_str(&a, a.header.bszProjectExeName, "vb_proj_exe");
-    _pe_vb_apply_header_str(&a, a.header.bszProjectHelpFile, "vb_proj_help");
-    _pe_vb_apply_header_str(&a, a.header.bszProjectName, "vb_proj_name");
-    rd_library_type(ctx, a.base, "PE_VB_HEADER", 0, RD_TYPE_NONE);
+    _pe_rename_imports(ctx);
+
+    _pe_vb_apply_header_str(vb_base, r, vb_header.bszProjectDescription,
+                            "vb_proj_desc", ctx);
+    _pe_vb_apply_header_str(vb_base, r, vb_header.bszProjectExeName,
+                            "vb_proj_exe", ctx);
+    _pe_vb_apply_header_str(vb_base, r, vb_header.bszProjectHelpFile,
+                            "vb_proj_help", ctx);
+    _pe_vb_apply_header_str(vb_base, r, vb_header.bszProjectName,
+                            "vb_proj_name", ctx);
+
+    rd_library_type(ctx, vb_base, "PE_VB_HEADER", 0, RD_TYPE_NONE);
 
     PEVBProjectInfo projinfo = {0};
 
-    if(a.header.lpProjectData) {
-        rd_reader_seek(a.reader, a.header.lpProjectData);
+    if(vb_header.lpProjectData) {
+        rd_reader_seek(r, vb_header.lpProjectData);
 
-        if(pe_vb_read_project_info(a.reader, &a.proj_info)) {
-            rd_library_type(ctx, a.header.lpProjectData, "PE_VB_PROJECT_INFO",
+        if(pe_vb_read_project_info(r, &proj_info)) {
+            rd_library_type(ctx, vb_header.lpProjectData, "PE_VB_PROJECT_INFO",
                             0, RD_TYPE_NONE);
         }
     }
 
-    if(a.proj_info.lpObjectTable) {
-        rd_reader_seek(a.reader, a.proj_info.lpObjectTable);
+    if(proj_info.lpObjectTable) {
+        rd_reader_seek(r, proj_info.lpObjectTable);
 
-        if(pe_vb_read_object_table(a.reader, &a.object_table)) {
-            rd_library_type(ctx, a.proj_info.lpObjectTable,
-                            "PE_VB_OBJECT_TABLE", 0, RD_TYPE_NONE);
+        if(pe_vb_read_object_table(r, &object_table)) {
+            rd_library_type(ctx, proj_info.lpObjectTable, "PE_VB_OBJECT_TABLE",
+                            0, RD_TYPE_NONE);
         }
     }
 
-    if(a.object_table.lpObjectTreeInfo) {
-        rd_reader_seek(a.reader, a.object_table.lpObjectTreeInfo);
+    if(object_table.lpObjectTreeInfo) {
+        rd_reader_seek(r, object_table.lpObjectTreeInfo);
 
-        if(pe_vb_read_object_tree(a.reader, &a.object_tree)) {
-            rd_library_type(ctx, a.object_table.lpObjectTreeInfo,
+        if(pe_vb_read_object_tree(r, &object_tree)) {
+            rd_library_type(ctx, object_table.lpObjectTreeInfo,
                             "PE_VB_OBJECT_TREE", 0, RD_TYPE_NONE);
         }
     }
 
-    if(a.object_table.lpPubObjArray) {
-        RDAddress address = a.object_table.lpPubObjArray;
+    if(object_table.lpPubObjArray) {
+        RDAddress address = object_table.lpPubObjArray;
         usize sz = rd_size_of(ctx, "PE_VB_PUBLIC_OBJECT_DESCRIPTOR", 0);
 
-        for(u16 i = 0; i < a.object_table.wTotalObjects; i++) {
-            rd_reader_seek(a.reader, address);
-            if(!_pe_vb_decompiler_obj(address, a.reader, ctx)) break;
+        for(u16 i = 0; i < object_table.wTotalObjects; i++) {
+            rd_reader_seek(r, address);
+            if(!_pe_vb_decompiler_obj(address, r, ctx)) break;
             address += sz;
         }
     }
