@@ -141,7 +141,7 @@ bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
 
         if(!has_oft) oft_va = ft_va;
         if(!has_ft) ft_va = oft_va;
-        if(has_oft && has_ft) _pe_read_thunks(ctx, pe, r, mod, oft_va, ft_va);
+        if(oft_va && ft_va) _pe_read_thunks(ctx, pe, r, mod, oft_va, ft_va);
 
         rd_free(mod);
         va += rd_size_of(ctx, "PE_IMPORT_DESCRIPTOR", 0);
