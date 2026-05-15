@@ -40,13 +40,13 @@ static void _pe_resource_read_dirs(RDContext* ctx, PEFormat* pe, RDReader* r,
     rd_library_type(ctx, va, "PE_RESOURCE_DIRECTORY", 0, RD_TYPE_NONE);
 
     u16 total = resdir.NumberOfNamedEntries + resdir.NumberOfIdEntries;
-    RDAddress entry_va = va + rd_size_of(ctx, "PE_RESOURCE_DIRECTORY", 0);
+    RDAddress entry_va = rd_reader_tell(r);
 
     for(u16 i = 0; i < total; i++) {
         PEResourceDirectoryEntry entry;
-        rd_reader_seek(r, entry_va);
         if(!_pe_resource_read_dir_entry(r, &entry)) break;
 
+        rd_reader_begin(r);
         rd_library_type(ctx, entry_va, "PE_RESOURCE_DIRECTORY_ENTRY", 0,
                         RD_TYPE_NONE);
 
@@ -60,9 +60,12 @@ static void _pe_resource_read_dirs(RDContext* ctx, PEFormat* pe, RDReader* r,
             rd_library_type(ctx, dataentry_va, "PE_RESOURCE_DATA_ENTRY", 0,
                             RD_TYPE_NONE);
 
-            PEResourceDataEntry dataentry;
             rd_reader_seek(r, dataentry_va);
-            if(!_pe_resource_read_data_entry(r, &dataentry)) break;
+            PEResourceDataEntry dataentry;
+            if(!_pe_resource_read_data_entry(r, &dataentry)) {
+                rd_reader_end(r);
+                break;
+            }
 
             RDAddress data_va;
 
@@ -73,33 +76,8 @@ static void _pe_resource_read_dirs(RDContext* ctx, PEFormat* pe, RDReader* r,
             }
         }
 
-        entry_va += rd_size_of(ctx, "PE_RESOURCE_DIRECTORY_ENTRY", 0);
+        entry_va = rd_reader_end(r);
     }
-}
-
-void pe_resources_register_types(RDContext* ctx) {
-    // clang-format off
-    RDTypeDef* resdir = rd_typedef_create_struct("PE_RESOURCE_DIRECTORY", ctx);
-    rd_typedef_add_member(resdir, "u32", "Characteristics", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(resdir, "u32", "TimeDateStamp", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(resdir, "u16", "MajorVersion", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(resdir, "u16", "MinorVersion", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(resdir, "u16", "NumberOfNamedEntries", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(resdir, "u16", "NumberOfIdEntries", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_register(resdir, ctx);
-
-    RDTypeDef* entry = rd_typedef_create_struct("PE_RESOURCE_DIRECTORY_ENTRY", ctx);
-    rd_typedef_add_member(entry, "u32", "NameOffset", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(entry, "u32", "OffsetToData", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_register(entry, ctx);
-
-    RDTypeDef* dataentry = rd_typedef_create_struct("PE_RESOURCE_DATA_ENTRY", ctx);
-    rd_typedef_add_member(dataentry, "u32", "OffsetToData", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(dataentry, "u32", "Size", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(dataentry, "u32", "CodePage", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(dataentry, "u32", "Reserved", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_register(dataentry, ctx);
-    // clang-format on
 }
 
 bool pe_resources_read(RDContext* ctx, PEFormat* pe) {
@@ -107,8 +85,6 @@ bool pe_resources_read(RDContext* ctx, PEFormat* pe) {
 
     RDAddress va;
     if(!pe_from_rva(pe, d.VirtualAddress, &va)) return false;
-
-    rd_library_type(ctx, va, "PE_RESOURCE_DIRECTORY", 0, RD_TYPE_NONE);
 
     RDReader* r = rd_get_reader(ctx);
     _pe_resource_read_dirs(ctx, pe, r, va, va, 0);

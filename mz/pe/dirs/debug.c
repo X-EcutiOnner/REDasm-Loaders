@@ -22,59 +22,69 @@
 #define PE_CVINFO_PDB20_SIGNATURE 0x3031424E // 'NB10'
 #define PE_CVINFO_PDB70_SIGNATURE 0x53445352 // 'RSDS'
 
-void pe_debug_register_types(RDContext* ctx) {
-    // clang-format off
-    RDTypeDef* dbgdir = rd_typedef_create_struct("PE_DEBUG_DIRECTORY", ctx);
-    rd_typedef_add_member(dbgdir, "u32", "Characteristics",   0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(dbgdir, "u32", "TimeDateStamp",     0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(dbgdir, "u16", "MajorVersion",      0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(dbgdir, "u16", "MinorVersion",      0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(dbgdir, "u32", "Type",              0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(dbgdir, "u32", "SizeOfData",        0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(dbgdir, "u32", "AddressOfRawData",  0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(dbgdir, "u32", "PointerToRawData",  0, RD_TYPE_NONE, ctx);
-    rd_typedef_register(dbgdir, ctx);
- 
-    RDTypeDef* pdb20 = rd_typedef_create_struct("CV_INFO_PDB20", ctx);
-    rd_typedef_add_member(pdb20, "u32", "CvSignature", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(pdb20, "u32", "Offset",      0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(pdb20, "u32", "Signature",   0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(pdb20, "u32", "Age",         0, RD_TYPE_NONE, ctx);
-    rd_typedef_register(pdb20, ctx);
- 
-    RDTypeDef* pdb70 = rd_typedef_create_struct("CV_INFO_PDB70", ctx);
-    rd_typedef_add_member(pdb70, "u32", "CvSignature",  0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(pdb70, "u8",  "Signature", 16, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(pdb70, "u32", "Age",          0, RD_TYPE_NONE, ctx);
-    rd_typedef_register(pdb70, ctx);
-    // clang-format on
+static bool _pe_read_cv_info_pdb20(RDReader* r, CvInfoPdb20* pdb) {
+    rd_reader_read_le32(r, &pdb->CvSignature);
+    rd_reader_read_le32(r, &pdb->Offset);
+    rd_reader_read_le32(r, &pdb->Signature);
+    rd_reader_read_le32(r, &pdb->Age);
+
+    return !rd_reader_has_error(r);
+}
+
+static bool _pe_read_cv_info_pdb70(RDReader* r, CvInfoPdb70* pdb) {
+    rd_reader_read_le32(r, &pdb->CvSignature);
+    rd_reader_read(r, pdb->Signature, sizeof(pdb->Signature));
+    rd_reader_read_le32(r, &pdb->Age);
+
+    return !rd_reader_has_error(r);
+}
+
+static bool _pe_read_debug_directory(RDReader* r, PEDebugDirectory* dbgdir) {
+    rd_reader_read_le32(r, &dbgdir->Characteristics);
+    rd_reader_read_le32(r, &dbgdir->TimeDateStamp);
+    rd_reader_read_le16(r, &dbgdir->MajorVersion);
+    rd_reader_read_le16(r, &dbgdir->MinorVersion);
+    rd_reader_read_le32(r, &dbgdir->Type);
+    rd_reader_read_le32(r, &dbgdir->SizeOfData);
+    rd_reader_read_le32(r, &dbgdir->AddressOfRawData);
+    rd_reader_read_le32(r, &dbgdir->PointerToRawData);
+
+    return !rd_reader_has_error(r);
 }
 
 static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
                               const PEDebugDirectory* dbgdir) {
-    RDAddress dbgva;
-    if(!pe_from_rva(pe, dbgdir->AddressOfRawData, &dbgva)) return;
+    RDAddress dbg_va;
+    if(!pe_from_rva(pe, dbgdir->AddressOfRawData, &dbg_va)) return;
 
     u32 sig;
-    rd_reader_seek(r, dbgva);
-    if(!rd_reader_read_le32(r, &sig)) return;
+    rd_reader_seek(r, dbg_va);
+    if(!rd_reader_peek_le32(r, &sig)) return;
 
     if(sig == PE_CVINFO_PDB20_SIGNATURE) {
-        rd_library_type(ctx, dbgva, "CV_INFO_PDB20", 0, RD_TYPE_NONE);
+        CvInfoPdb20 pdb;
+        if(!_pe_read_cv_info_pdb20(r, &pdb)) return;
 
-        RDAddress pdbname_va = dbgva + rd_size_of(ctx, "CV_INFO_PDB20", 0);
+        rd_library_type(ctx, dbg_va, "CV_INFO_PDB20", 0, RD_TYPE_NONE);
+
+        RDAddress pdbname_va = dbg_va + rd_reader_tell(r);
         usize n;
         rd_reader_seek(r, pdbname_va);
+
         const char* pdbname = rd_reader_peek_str(r, &n);
         if(pdbname)
             rd_library_type(ctx, pdbname_va, "char", n + 1, RD_TYPE_NONE);
     }
     else if(sig == PE_CVINFO_PDB70_SIGNATURE) {
-        rd_library_type(ctx, dbgva, "CV_INFO_PDB70", 0, RD_TYPE_NONE);
+        CvInfoPdb70 pdb;
+        if(!_pe_read_cv_info_pdb70(r, &pdb)) return;
 
-        RDAddress pdbname_va = dbgva + rd_size_of(ctx, "CV_INFO_PDB70", 0);
+        rd_library_type(ctx, dbg_va, "CV_INFO_PDB70", 0, RD_TYPE_NONE);
+
+        RDAddress pdbname_va = dbg_va + rd_reader_tell(r);
         usize n;
         rd_reader_seek(r, pdbname_va);
+
         const char* pdbname = rd_reader_peek_str(r, &n);
         if(pdbname)
             rd_library_type(ctx, pdbname_va, "char", n + 1, RD_TYPE_NONE);
@@ -88,29 +98,22 @@ bool pe_read_debug(RDContext* ctx, PEFormat* pe) {
     RDAddress va;
     if(!pe_from_rva(pe, d.VirtualAddress, &va)) return false;
 
-    usize entrysize = rd_size_of(ctx, "PE_DEBUG_DIRECTORY", 0);
-    usize n = d.Size / entrysize;
     RDReader* r = rd_get_reader(ctx);
+    rd_reader_seek(r, va);
 
-    for(usize i = 0; i < n; i++) {
-        RDAddress entry_va = va + (i * entrysize);
-        rd_reader_seek(r, entry_va);
+    while(rd_reader_tell(r) < va + d.Size) {
+        RDAddress entry_va = rd_reader_tell(r);
 
         PEDebugDirectory dbgdir;
-        rd_reader_read_le32(r, &dbgdir.Characteristics);
-        rd_reader_read_le32(r, &dbgdir.TimeDateStamp);
-        rd_reader_read_le16(r, &dbgdir.MajorVersion);
-        rd_reader_read_le16(r, &dbgdir.MinorVersion);
-        rd_reader_read_le32(r, &dbgdir.Type);
-        rd_reader_read_le32(r, &dbgdir.SizeOfData);
-        rd_reader_read_le32(r, &dbgdir.AddressOfRawData);
-        rd_reader_read_le32(r, &dbgdir.PointerToRawData);
-        if(rd_reader_has_error(r)) break;
+        if(!_pe_read_debug_directory(r, &dbgdir)) break;
 
+        rd_reader_begin(r);
         rd_library_type(ctx, entry_va, "PE_DEBUG_DIRECTORY", 0, RD_TYPE_NONE);
 
         if(dbgdir.Type == PE_DEBUG_TYPE_CODEVIEW)
             _pe_read_codeview(ctx, pe, r, &dbgdir);
+
+        rd_reader_end(r);
     }
 
     return true;

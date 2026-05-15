@@ -22,10 +22,8 @@ static const RDInstruction PE_VB_EVENT_ENTRY[] = {
 };
 
 static inline bool
-_pe_vb_has_optional_info(const PEVBPublicObjectDescriptor* descr,
-                         const PEVBObjectInfo* objinfo, const RDContext* ctx) {
-    return descr->lpObjectInfo + rd_size_of(ctx, "PE_VB_OBJECT_INFO", 0) !=
-           objinfo->lpConstants;
+_pe_vb_has_optional_info(const PEVBPublicObjectDescriptor* descr) {
+    return (descr->fObjectType & 2) == 2;
 }
 
 static void _pe_vb_apply_header_str(RDAddress vb_base, RDReader* r, u32 offset,
@@ -121,21 +119,19 @@ static bool _pe_vb_decompiler_controls(const PEVBPublicObjectDescriptor* descr,
                                        const PEVBObjectInfoOptional* objinfo,
                                        RDReader* r, RDContext* ctx) {
 
-    RDAddress address = objinfo->lpControls;
-    usize n = rd_size_of(ctx, "PE_VB_CONTROL_INFO", 0);
+    rd_reader_seek(r, objinfo->lpControls);
 
     for(u32 i = 0; i < objinfo->dwControlCount; i++) {
-        rd_reader_seek(r, address);
-
         PEVBControlInfo ctrlinfo;
+        bool ok = pe_vb_read_control_info(r, &ctrlinfo);
 
-        if(pe_vb_read_control_info(r, &ctrlinfo)) {
-            rd_library_type(ctx, address, "PE_VB_CONTROL_INFO", 0,
+        if(ok) {
+            rd_reader_begin(r);
+            rd_library_type(ctx, rd_reader_tell(r), "PE_VB_CONTROL_INFO", 0,
                             RD_TYPE_NONE);
             _pe_vb_decompiler_events(descr, &ctrlinfo, r, ctx);
+            rd_reader_end(r);
         }
-
-        address += n;
     }
 
     return !rd_reader_has_error(r);
@@ -151,15 +147,9 @@ static bool _pe_vb_decompiler_obj(RDAddress address, RDReader* r,
 
     if(descr.lpObjectInfo) {
         rd_reader_seek(r, descr.lpObjectInfo);
+        if(!_pe_vb_has_optional_info(&descr)) goto done;
 
-        PEVBObjectInfo objinfo;
-        if(!pe_vb_read_object_info(r, &objinfo) ||
-           !_pe_vb_has_optional_info(&descr, &objinfo, ctx))
-            goto done;
-
-        rd_reader_seek(r, descr.lpObjectInfo);
         PEVBObjectInfoOptional opt_objinfo;
-
         if(!pe_vb_read_object_info_optional(r, &opt_objinfo) ||
            !opt_objinfo.lpControls)
             goto done;
@@ -272,13 +262,14 @@ static void pe_vb_decompiler_execute(RDContext* ctx) {
     }
 
     if(object_table.lpPubObjArray) {
-        RDAddress address = object_table.lpPubObjArray;
-        usize sz = rd_size_of(ctx, "PE_VB_PUBLIC_OBJECT_DESCRIPTOR", 0);
+        rd_reader_seek(r, object_table.lpPubObjArray);
 
         for(u16 i = 0; i < object_table.wTotalObjects; i++) {
-            rd_reader_seek(r, address);
-            if(!_pe_vb_decompiler_obj(address, r, ctx)) break;
-            address += sz;
+            rd_reader_begin(r);
+            bool ok = _pe_vb_decompiler_obj(rd_reader_tell(r), r, ctx);
+            rd_reader_end(r);
+
+            if(!ok) break;
         }
     }
 }

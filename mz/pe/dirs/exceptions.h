@@ -9,5 +9,4 @@ typedef struct PERuntimeFunctionEntry {
     u32 UnwindInfoAddress; // or UnwindData
 } PERuntimeFunctionEntry;
 
-void pe_exceptions_register_types(RDContext* ctx);
 bool pe_read_exceptions(RDContext* ctx, PEFormat* pe);

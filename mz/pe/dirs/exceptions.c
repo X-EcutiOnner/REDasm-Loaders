@@ -1,14 +1,12 @@
 #include "exceptions.h"
 #include <inttypes.h>
 
-void pe_exceptions_register_types(RDContext* ctx) {
-    // clang-format off
-    RDTypeDef* rfe = rd_typedef_create_struct(" PE_RUNTIME_FUNCTION_ENTRY", ctx);
-    rd_typedef_add_member(rfe, "u32", "BeginAddress",    0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(rfe, "u32", "EndAddress",      0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(rfe, "u32", "UnwindInfoAddress", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_register(rfe, ctx);
-    // clang-format on
+static bool _pe_read_runtime_function_entry(RDReader* r,
+                                            PERuntimeFunctionEntry* entry) {
+    rd_reader_read_le32(r, &entry->BeginAddress);
+    rd_reader_read_le32(r, &entry->EndAddress);
+    rd_reader_read_le32(r, &entry->UnwindInfoAddress);
+    return !rd_reader_has_error(r);
 }
 
 bool pe_read_exceptions(RDContext* ctx, PEFormat* pe) {
@@ -21,23 +19,17 @@ bool pe_read_exceptions(RDContext* ctx, PEFormat* pe) {
     RDAddress va;
     if(!pe_from_rva(pe, d.VirtualAddress, &va)) return false;
 
-    usize entrysize = rd_size_of(ctx, " PE_RUNTIME_FUNCTION_ENTRY", 0);
-    usize n = d.Size / entrysize;
     RDReader* r = rd_get_reader(ctx);
+    rd_reader_seek(r, va);
 
-    for(usize i = 0; i < n; i++) {
-        RDAddress entry_va = va + (i * entrysize);
-        rd_reader_seek(r, entry_va);
+    while(rd_reader_tell(r) < va + d.Size) {
+        RDAddress entry_va = rd_reader_tell(r);
 
         PERuntimeFunctionEntry entry;
-        rd_reader_read_le32(r, &entry.BeginAddress);
-        rd_reader_read_le32(r, &entry.EndAddress);
-        rd_reader_read_le32(r, &entry.UnwindInfoAddress);
-
-        if(rd_reader_has_error(r)) break;
+        if(!_pe_read_runtime_function_entry(r, &entry)) break;
         if(!entry.BeginAddress) continue;
 
-        rd_library_type(ctx, entry_va, " PE_RUNTIME_FUNCTION_ENTRY", 0,
+        rd_library_type(ctx, entry_va, "PE_RUNTIME_FUNCTION_ENTRY", 0,
                         RD_TYPE_NONE);
 
         RDAddress func_va;

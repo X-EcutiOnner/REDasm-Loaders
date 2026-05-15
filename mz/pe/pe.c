@@ -88,14 +88,10 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
 }
 
 static bool pe_load(RDLoader* ldr, RDContext* ctx) {
+    rd_kb_load_types("pe/types", ctx);
+
     PEFormat* pe = (PEFormat*)ldr;
     pe_set_bits(pe);
-
-    pe_exports_register_types(ctx);
-    pe_imports_register_types(ctx);
-    pe_resources_register_types(ctx);
-    pe_exceptions_register_types(ctx);
-    pe_debug_register_types(ctx);
 
     for(usize i = 0; i < pe->fileheader.NumberOfSections; i++) {
         PESectionHeader s;

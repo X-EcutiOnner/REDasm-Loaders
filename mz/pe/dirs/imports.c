@@ -89,18 +89,6 @@ static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
     }
 }
 
-void pe_imports_register_types(RDContext* ctx) {
-    // clang-format off
-    RDTypeDef* importdescr = rd_typedef_create_struct("PE_IMPORT_DESCRIPTOR", ctx);
-    rd_typedef_add_member(importdescr, "u32", "OriginalFirstThunk", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(importdescr, "u32", "TimeDateStamp", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(importdescr, "u32", "ForwarderChain", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(importdescr, "u32", "Name", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(importdescr, "u32", "FirstThunk", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_register(importdescr, ctx);
-    // clang-format on
-}
-
 bool pe_imports_read_descriptor(RDReader* r, PEImportDescriptor* desc) {
     rd_reader_read_le32(r, &desc->OriginalFirstThunk);
     rd_reader_read_le32(r, &desc->TimeDateStamp);
@@ -123,6 +111,7 @@ bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
 
     PEImportDescriptor desc;
     while(pe_imports_read_descriptor(r, &desc)) {
+        rd_reader_begin(r);
         rd_library_type(ctx, va, "PE_IMPORT_DESCRIPTOR", 0, RD_TYPE_NONE);
 
         RDAddress name_va;
@@ -131,21 +120,19 @@ bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
         if(mod) {
             rd_library_type(ctx, name_va, "char", strlen(mod) + 1,
                             RD_TYPE_NONE);
+
+            RDAddress ft_va, oft_va;
+            bool has_ft = pe_from_rva(pe, desc.FirstThunk, &ft_va);
+            bool has_oft = pe_from_rva(pe, desc.OriginalFirstThunk, &oft_va);
+
+            if(!has_oft) oft_va = ft_va;
+            if(!has_ft) ft_va = oft_va;
+            if(oft_va && ft_va) _pe_read_thunks(ctx, pe, r, mod, oft_va, ft_va);
+
+            rd_free(mod);
         }
-        else
-            continue;
 
-        RDAddress ft_va, oft_va;
-        bool has_ft = pe_from_rva(pe, desc.FirstThunk, &ft_va);
-        bool has_oft = pe_from_rva(pe, desc.OriginalFirstThunk, &oft_va);
-
-        if(!has_oft) oft_va = ft_va;
-        if(!has_ft) ft_va = oft_va;
-        if(oft_va && ft_va) _pe_read_thunks(ctx, pe, r, mod, oft_va, ft_va);
-
-        rd_free(mod);
-        va += rd_size_of(ctx, "PE_IMPORT_DESCRIPTOR", 0);
-        rd_reader_seek(r, va);
+        va = rd_reader_end(r);
     }
 
     return true;

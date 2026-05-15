@@ -44,7 +44,10 @@ static PEClassification _pe_classify_imports(const PEFormat* pe,
 
     PEImportDescriptor desc;
     while(pe_imports_read_descriptor(r, &desc)) {
+        rd_reader_begin(r);
         const char* mod = pe_imports_get_descriptor_name(r, pe, &desc);
+        rd_reader_end(r);
+
         if(!mod) continue;
 
         if(!rd_stricmp(mod, "msvbvm50.dll")) return PE_CLASS_VISUAL_BASIC_5;
@@ -108,9 +111,6 @@ static PEClassification _pe_classify_imports(const PEFormat* pe,
            !rd_stricmp(mod, "vcl160.bpl") || !rd_stricmp(mod, "vcl170.bpl") ||
            !rd_stricmp(mod, "vcl180.bpl") || !rd_stricmp(mod, "vcl190.bpl"))
             return PE_CLASS_BORLAND_DELPHI_XE2_6;
-
-        va += rd_size_of(ctx, "PE_IMPORT_DESCRIPTOR", 0);
-        rd_reader_seek(r, va);
     }
 
     return PE_CLASS_NONE;

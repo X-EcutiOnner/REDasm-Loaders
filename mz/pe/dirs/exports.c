@@ -33,24 +33,6 @@ static bool _pe_is_linker_boundary(const char* name) {
     return false;
 }
 
-void pe_exports_register_types(RDContext* ctx) {
-    // clang-format off
-    RDTypeDef* exportdir = rd_typedef_create_struct("PE_EXPORT_DIRECTORY", ctx);
-    rd_typedef_add_member(exportdir, "u32", "Characteristics", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(exportdir, "u32", "TimeDateStamp", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(exportdir, "u16", "MajorVersion", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(exportdir, "u16", "MinorVersion", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(exportdir, "u32", "Name", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(exportdir, "u32", "Base", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(exportdir, "u32", "NumberOfFunctions", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(exportdir, "u32", "NumberOfNames", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(exportdir, "u32", "AddressOfFunctions", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(exportdir, "u32", "AddressOfNames", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_add_member(exportdir, "u32", "AddressOfNameOrdinals", 0, RD_TYPE_NONE, ctx);
-    rd_typedef_register(exportdir, ctx);
-    // clang-format on
-}
-
 bool pe_read_exports(RDContext* ctx, PEFormat* pe) {
     PEDataDirectory d = pe->datadir[PE_DIRECTORY_ENTRY_EXPORT];
 
