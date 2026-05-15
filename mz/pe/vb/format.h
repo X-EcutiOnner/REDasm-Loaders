@@ -181,7 +181,6 @@ typedef struct PEVBEventInfo {
     // u32 lpEvents[1];
 } PEVBEventInfo;
 
-void pe_vb_register_types(RDContext* ctx);
 bool pe_vb_read_guid(RDReader* r, PEGUID* v);
 bool pe_vb_read_header(RDReader* r, PEVBHeader* h);
 bool pe_vb_read_project_info(RDReader* r, PEVBProjectInfo* v);

@@ -16,7 +16,7 @@ static const char* _pe_cv_guid_to_string(const PEGUID* guid) {
 const RDKBObject* pe_vb_components_find(const PEGUID* guid) {
     if(!guid) return NULL;
 
-    const RDKBObject* components = rd_kb_load("pe/vb_components");
+    const RDKBObject* components = rd_kb_load("pe/vb/components");
     if(!components) return NULL;
 
     const char* guid_str = _pe_cv_guid_to_string(guid);

@@ -211,7 +211,7 @@ static void pe_vb_decompiler_execute(RDContext* ctx) {
                          rd_count_of(PE_VB_ENTRY_MATCH)))
         return;
 
-    pe_vb_register_types(ctx);
+    rd_kb_load_types("pe/vb/types", ctx);
 
     RDReader* r = rd_get_reader(ctx);
     RDAddress vb_base = instrs[0].operands[0].addr;
