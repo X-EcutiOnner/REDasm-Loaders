@@ -72,7 +72,7 @@ static void _pe_vb_decompiler_events(const PEVBPublicObjectDescriptor* descr,
     rd_reader_seek(r, ctrlinfo->lpGuid);
     if(!pe_vb_read_guid(r, &guid)) goto cleanup;
 
-    const PEVBComponent* c = pe_vb_components_find(&guid);
+    const RDKBObject* c = pe_vb_components_find(&guid);
     if(!c) goto cleanup;
 
     PEVBEventInfo evinfo;
@@ -97,15 +97,19 @@ static void _pe_vb_decompiler_events(const PEVBPublicObjectDescriptor* descr,
                             "EVENT_SINK_Release");
     }
 
-    const char* const* events = c->events;
+    const RDKBObject* events = rd_kbobject_get_array(c, "events");
 
-    while(*events) {
-        const char* n = rd_format("%s_%s_%s", objname, ctrlname, *events);
-
+    const RDKBObject* it;
+    rd_kbobject_each(it, events) {
         u32 event_va;
         if(!rd_reader_read_le32(r, &event_va)) break;
-        if(event_va) _pe_vb_decompiler_decode((RDAddress)event_va, n, ctx);
-        events++;
+        if(!event_va) continue;
+
+        const char* e = rd_kbobject_to_str(it);
+        if(!e) break;
+
+        const char* n = rd_format("%s_%s_%s", objname, ctrlname, e);
+        _pe_vb_decompiler_decode((RDAddress)event_va, n, ctx);
     }
 
 cleanup:

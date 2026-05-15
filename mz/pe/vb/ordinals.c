@@ -3,7 +3,7 @@
 const char* pe_vb_ordinals_get_name(const RDImported* imp) {
     if(!imp->module || !imp->ordinal.has_value) return NULL;
 
-    RDKBObject* kb = NULL;
+    const RDKBObject* kb = NULL;
 
     if(!rd_stricmp(imp->module, "msvbvm50.dll"))
         kb = rd_kb_load("pe/ordinals/msvbvm50");

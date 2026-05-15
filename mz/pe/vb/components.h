@@ -8,4 +8,4 @@ typedef struct PEVBComponent {
     const char* const* events;
 } PEVBComponent;
 
-const PEVBComponent* pe_vb_components_find(const PEGUID* guid);
+const RDKBObject* pe_vb_components_find(const PEGUID* guid);
