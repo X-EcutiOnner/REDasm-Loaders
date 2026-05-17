@@ -164,7 +164,8 @@ static const char* pe_get_processor(RDLoader* ldr, const RDContext* ctx) {
     PEFormat* pe = (PEFormat*)ldr;
 
     switch(pe->fileheader.Machine) {
-        case PE_FILE_MACHINE_ARM: {
+        case PE_FILE_MACHINE_ARM:
+        case PE_FILE_MACHINE_ARMNT: {
             if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) return "arm64_le";
             return "arm32_le";
         }

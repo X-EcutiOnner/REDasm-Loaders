@@ -15,7 +15,8 @@ void pe_set_bits(PEFormat* pe) {
             return;
         }
 
-        case PE_FILE_MACHINE_ARM: {
+        case PE_FILE_MACHINE_ARM:
+        case PE_FILE_MACHINE_ARMNT: {
             if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) {
                 pe->thunk_size = sizeof(u64);
                 pe->thunk_type = "u64";
@@ -57,7 +58,8 @@ bool pe_read_section_header(RDContext* ctx, PEFormat* pe, int idx,
 }
 
 RDAddress pe_norm(RDContext* ctx, const PEFormat* pe, RDAddress address) {
-    if(pe->fileheader.Machine == PE_FILE_MACHINE_ARM) {
+    if(pe->fileheader.Machine == PE_FILE_MACHINE_ARM ||
+       pe->fileheader.Machine == PE_FILE_MACHINE_ARMNT) {
         if(address & 1) {
             rd_library_sregval(ctx, address & ~1, "T", 1);
             return address & ~1;

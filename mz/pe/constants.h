@@ -9,6 +9,7 @@
 
 // File Header
 #define PE_FILE_MACHINE_ARM 0x1c0
+#define PE_FILE_MACHINE_ARMNT 0x1c4 // Windows on ARM (aka Windows RT)
 #define PE_FILE_MACHINE_AMD64 0x8664
 #define PE_FILE_MACHINE_I386 0x14c
 
