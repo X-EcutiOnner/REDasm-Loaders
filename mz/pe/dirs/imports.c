@@ -1,4 +1,5 @@
 #include "imports.h"
+#include <ctype.h>
 #include <string.h>
 
 #define PE_ORDINAL_FLAG64 0x8000000000000000ULL
@@ -89,6 +90,22 @@ static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
     }
 }
 
+static char* _pe_get_import_name_stem(const char* mod) {
+    char* stem = rd_alloc0(strlen(mod) + 1, sizeof(char));
+    strcpy(stem, mod);
+
+    char* dot = strrchr(stem, '.');
+    if(dot != stem) *dot = 0;
+
+    char* p = stem;
+    while(*p) {
+        *p = tolower((int)*p);
+        p++;
+    }
+
+    return stem;
+}
+
 bool pe_imports_read_descriptor(RDReader* r, PEImportDescriptor* desc) {
     rd_reader_read_le32(r, &desc->OriginalFirstThunk);
     rd_reader_read_le32(r, &desc->TimeDateStamp);
@@ -118,6 +135,15 @@ bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
         char* mod = rd_strdup(pe_imports_get_descriptor_name(r, pe, &desc));
 
         if(mod) {
+            char* import_stem = _pe_get_import_name_stem(mod);
+
+            // try to load KB
+            const char* kb_path =
+                rd_format("pe/os/win32/functions/%s", import_stem);
+
+            rd_kb_load_functions(kb_path, ctx);
+            rd_free(import_stem);
+
             rd_library_type(ctx, name_va, "char", strlen(mod) + 1,
                             RD_TYPE_NONE);
 
