@@ -9,6 +9,8 @@
 typedef struct PEFormat {
     RDAddress imagebase;
     RDAddress entrypoint;
+    u32 section_align;
+
     MZDosHeader dosheader;
     PEFileHeader fileheader;
 

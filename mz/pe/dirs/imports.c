@@ -95,6 +95,7 @@ static char* _pe_get_import_name_stem(const char* mod) {
     strcpy(stem, mod);
 
     char* dot = strrchr(stem, '.');
+    if(!dot) return stem;
     if(dot != stem) *dot = 0;
 
     char* p = stem;
@@ -141,7 +142,7 @@ bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
             const char* kb_path =
                 rd_format("pe/os/win32/functions/%s", import_stem);
 
-            rd_kb_load_functions(kb_path, ctx);
+            rd_kb_load_functions(ctx, kb_path);
             rd_free(import_stem);
 
             rd_library_type(ctx, name_va, "char", strlen(mod) + 1,

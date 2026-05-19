@@ -69,6 +69,7 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
         rd_reader_read_le32(req->input, &pe->opt32.SizeOfHeapCommit);
         rd_reader_read_le32(req->input, &pe->opt32.LoaderFlags);
         rd_reader_read_le32(req->input, &pe->opt32.NumberOfRvaAndSizes);
+        pe->section_align = pe->opt32.SectionAlignment;
     }
     else if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) {
         rd_reader_read_le64(req->input, &pe->opt64.SizeOfStackReserve);
@@ -77,6 +78,7 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
         rd_reader_read_le64(req->input, &pe->opt64.SizeOfHeapCommit);
         rd_reader_read_le32(req->input, &pe->opt32.LoaderFlags);
         rd_reader_read_le32(req->input, &pe->opt32.NumberOfRvaAndSizes);
+        pe->section_align = pe->opt64.SectionAlignment;
     }
 
     for(int i = 0; i < PE_NUMBER_OF_DIRECTORY_ENTRIES; i++) {
@@ -88,7 +90,7 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
 }
 
 static bool pe_load(RDLoader* ldr, RDContext* ctx) {
-    rd_kb_load_types("pe/types", ctx);
+    rd_kb_load_types(ctx, "pe/types");
 
     PEFormat* pe = (PEFormat*)ldr;
     pe_set_bits(pe);
@@ -114,11 +116,22 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
         memcpy(section_name, s.Name, PE_SIZE_OF_SHORT_NAME);
 
         RDAddress addr = pe->imagebase + s.VirtualAddress;
-        rd_map_segment_n(ctx, section_name, addr, s.VirtualSize, perm);
 
-        rd_map_input_n(ctx, s.PointerToRawData, addr,
-                       s.VirtualSize < s.SizeOfRawData ? s.VirtualSize
-                                                       : s.SizeOfRawData);
+        u32 vsize = s.VirtualSize;
+        if(!vsize) vsize = s.SizeOfRawData;
+
+        if(pe->section_align) {
+            u32 diff = vsize % pe->section_align;
+            if(diff) vsize += pe->section_align - diff;
+        }
+
+        rd_map_segment_n(ctx, section_name, addr, vsize, perm);
+
+        if(s.PointerToRawData) {
+            rd_map_input_n(ctx, s.PointerToRawData, addr,
+                           s.VirtualSize < s.SizeOfRawData ? s.VirtualSize
+                                                           : s.SizeOfRawData);
+        }
     }
 
     if(pe_dotnet_get_major(ctx, pe)) {
