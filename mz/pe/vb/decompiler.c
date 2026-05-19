@@ -70,7 +70,7 @@ static void _pe_vb_decompiler_events(const PEVBPublicObjectDescriptor* descr,
     rd_reader_seek(r, ctrlinfo->lpGuid);
     if(!pe_vb_read_guid(r, &guid)) goto cleanup;
 
-    const RDKBObject* c = pe_vb_components_find(&guid);
+    const RDKBObject* c = pe_vb_components_find(ctx, &guid);
     if(!c) goto cleanup;
 
     PEVBEventInfo evinfo;
@@ -172,7 +172,7 @@ static void _pe_rename_imports(RDContext* ctx) {
         RDImported imp;
         if(!rd_get_imported(ctx, *it, &imp)) continue;
 
-        const char* name = pe_vb_ordinals_get_name(&imp);
+        const char* name = pe_vb_ordinals_get_name(ctx, &imp);
         if(name) rd_set_imported(ctx, *it, imp.module, name);
     }
 }
@@ -201,7 +201,7 @@ static void pe_vb_decompiler_execute(RDContext* ctx) {
                          rd_count_of(PE_VB_ENTRY_MATCH)))
         return;
 
-    rd_kb_load_types("pe/vb/types", ctx);
+    rd_kb_load_types(ctx, "pe/vb/types");
 
     RDReader* r = rd_get_reader(ctx);
     RDAddress vb_base = instrs[0].operands[0].addr;

@@ -1,7 +1,7 @@
 #include "biosfunc.h"
 
-static const char* psx_bios_lookup(u8 sel, u8 fn) {
-    const RDKBObject* kb = rd_kb_load("psx/bios");
+static const char* psx_bios_lookup(RDContext* ctx, u8 sel, u8 fn) {
+    const RDKBObject* kb = rd_kb_load(ctx, "psx/bios");
 
     const char* str = rd_format("bios.sel.%02x", sel);
     const char* sel_str = rd_kbobject_get_str(kb, str);
@@ -27,7 +27,7 @@ void psx_bios_autorename_hook(RDContext* ctx) {
         if(!rd_il_get_regval(rdil, "$t1", &t1)) continue;
         if(!rd_il_get_regval(rdil, "$t2", &t2)) continue;
 
-        const char* name = psx_bios_lookup(t2, t1);
+        const char* name = psx_bios_lookup(ctx, t2, t1);
 
         if(name) {
             RDAddress func_addr = rd_function_get_address(f);
