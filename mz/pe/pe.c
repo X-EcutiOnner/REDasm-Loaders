@@ -90,7 +90,7 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
 }
 
 static bool pe_load(RDLoader* ldr, RDContext* ctx) {
-    rd_kb_load_types(ctx, "pe/types");
+    rd_kb_load(ctx, "pe/types");
 
     PEFormat* pe = (PEFormat*)ldr;
     pe_set_bits(pe);
