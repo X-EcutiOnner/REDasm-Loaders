@@ -73,7 +73,7 @@ static bool psx_load(RDLoader* ldr, RDContext* ctx) {
         rd_library_sregval(ctx, h->pc0, "$sp", h->s_addr);
     }
 
-    rd_register_hook(ctx, "redasm.finalize", psx_bios_autorename_hook);
+    rd_register_hook(ctx, "redasm.functions_created", psx_bios_autorename_hook);
     return rd_set_entry_point(ctx, h->pc0, "PSX_EntryPoint");
 }
 
