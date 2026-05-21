@@ -76,7 +76,7 @@ static bool psxbios_load(RDLoader* ldr, RDContext* ctx) {
     rd_library_name(ctx, 0x000000B0, "PSX_VectorB");
     rd_library_name(ctx, 0x000000C0, "PSX_VectorC");
 
-    rd_register_hook(ctx, "redasm.finalize", psx_bios_autorename_hook);
+    rd_register_hook(ctx, "redasm.finalized", psx_bios_autorename_hook);
 
     return rd_set_entry_point(ctx, PSX_BIOS_BASE, "PSX_Reset");
 }
