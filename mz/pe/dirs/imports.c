@@ -14,6 +14,23 @@ typedef struct PEThunk {
     bool is_ord;
 } PEThunk;
 
+static const char* const RD_WIN_MODULES[] = {
+    "kernel32",   "user32",     "gdi32",    "advapi32", "shell32",
+    "ole32",      "oleaut32",   "comctl32", "comdlg32", "ntdll",
+    "api-ms-win", "ext-ms-win", NULL,
+};
+
+static bool _pe_is_win_module(const char* module) {
+    const char* const* mod = RD_WIN_MODULES;
+
+    while(*mod) {
+        if(rd_stristr(*mod, module) == module) return true;
+        mod++;
+    }
+
+    return false;
+}
+
 static bool _pe_read_thunk(RDAddress va, RDReader* r, const PEFormat* pe,
                            PEThunk* thunk) {
     rd_reader_seek(r, va);
@@ -41,6 +58,9 @@ static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
                             RDAddress ft_va) {
     rd_reader_seek(r, ft_va);
 
+    // VB uses wide strings
+    if(rd_stristr(module, "msvbvm") == module) rd_set_scan_char16(ctx, true);
+
     while(true) {
         PEThunk oft_thunk, ft_thunk;
         if(!_pe_read_thunk(oft_va, r, pe, &oft_thunk)) break;
@@ -64,6 +84,9 @@ static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
 
             usize n;
             const char* name = rd_reader_read_str(r, &n);
+
+            if(name && n && (name[n - 1] == 'W') && _pe_is_win_module(module))
+                rd_set_scan_char16(ctx, true);
 
             rd_library_type(ctx, thunkva, "u16", 0, RD_TYPE_NONE);
             rd_library_type(ctx, thunkva + sizeof(u16), "char", n + 1,
