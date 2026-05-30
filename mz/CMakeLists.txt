@@ -13,6 +13,13 @@ target_sources(${PROJECT_NAME}
         com/com.c
         common/common.c
         common/win16_ordinals.c
+        le/exports.c
+        le/fixup.c
+        le/format.c
+        le/imports.c
+        le/le.c
+        le/objects.c
+        le/pages.c
         mz/mz.c
         ne/entries.c
         ne/exports.c

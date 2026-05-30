@@ -1,0 +1,74 @@
+#include "le.h"
+#include "common/common.h"
+#include "le/exports.h"
+#include "le/format.h"
+#include "le/objects.h"
+
+static bool le_parse(RDLoader* ldr, const RDLoaderRequest* req) {
+    LEFormat* le = (LEFormat*)ldr;
+    if(!mz_read_dos_header(req->input, &le->dosheader)) return false;
+
+    bool is_le =
+        mz_match_signature(req->input, &le->dosheader, MZ_LE_SIGNATURE);
+    bool is_lx =
+        mz_match_signature(req->input, &le->dosheader, MZ_LX_SIGNATURE);
+
+    if(!is_le && !is_lx) return false;
+
+    le->is_lx = is_lx;
+    le->base = le->dosheader.e_lfanew;
+    return le_read_header(req->input, &le->header);
+}
+
+static bool le_load(RDLoader* ldr, RDContext* ctx) {
+    LEFormat* le = (LEFormat*)ldr;
+    le->imports = le_importslice_create(le, ctx);
+
+    le_report_module_type(le);
+    le_report_cpu_type(le);
+    le_report_os_type(le);
+
+    if(!le_segments_load(le, ctx)) return false;
+
+    le_exports_read(le, ctx);
+
+    if(le->header.eip_obj) {
+        RDAddress eip = le_seg_address(le->header.eip_obj, le->header.eip);
+        rd_set_entry_point(ctx, eip, NULL);
+    }
+
+    if(le->header.esp_obj) {
+        RDAddress esp = le_seg_address(le->header.esp_obj, le->header.esp);
+        rd_auto_sregval(ctx, 0, "esp", esp);
+    }
+
+    return true;
+}
+
+static RDLoader* le_create(const RDLoaderPlugin* plugin) {
+    RD_UNUSED(plugin);
+    return rd_alloc0(1, sizeof(LEFormat));
+}
+
+static void le_destroy(RDLoader* ldr) {
+    LEFormat* le = (LEFormat*)ldr;
+    le_importslice_destroy(&le->imports);
+    rd_free(le);
+}
+
+static const char* le_get_processor(RDLoader* ldr, const RDContext* ctx) {
+    RD_UNUSED(ldr);
+    RD_UNUSED(ctx);
+    return "x86_32";
+}
+
+const RDLoaderPlugin LE_LOADER = {
+    .level = RD_API_LEVEL,
+    .id = LE_PLUGIN_ID,
+    .name = "Linear Executable",
+    .create = le_create,
+    .destroy = le_destroy,
+    .parse = le_parse,
+    .load = le_load,
+    .get_processor = le_get_processor,
+};

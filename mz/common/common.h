@@ -5,6 +5,7 @@
 #define MZ_DOS_SIGNATURE 0x5A4D
 #define MZ_NE_SIGNATURE 0x454E
 #define MZ_LE_SIGNATURE 0x454C
+#define MZ_LX_SIGNATURE 0x584C
 #define MZ_NT_SIGNATURE 0x00004550
 
 typedef struct MZDosHeader {

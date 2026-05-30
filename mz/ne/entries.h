@@ -2,7 +2,7 @@
 
 #include "ne/format.h"
 
-typedef struct NEOrdinalSlice {
+typedef struct NEEntrySlice {
     RDAddress* data;
     u16 length;
 } NEEntrySlice;
