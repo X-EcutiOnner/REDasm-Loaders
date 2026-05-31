@@ -31,6 +31,7 @@
 static void _le_patch_fixup(RDContext* ctx, u8 type, RDAddress address,
                             RDAddress target) {
     switch(type & LE_FIXUP_SOURCE_MASK) {
+        case LE_FIXUP_SOURCE_PTR_32:
         case LE_FIXUP_SOURCE_OFF_32:
             rd_write_le32(ctx, address, (u32)target);
             break;
@@ -45,7 +46,6 @@ static void _le_patch_fixup(RDContext* ctx, u8 type, RDAddress address,
             break;
 
         case LE_FIXUP_SOURCE_SEG:
-        case LE_FIXUP_SOURCE_PTR_32:
         case LE_FIXUP_SOURCE_PTR_48: {
             rd_log(RD_LOG_WARN, LE_PLUGIN_ID,
                    "unhandled fixup source type 0x%02x at 0x%08x",
@@ -122,8 +122,15 @@ void le_fixup_apply(const LEFormat* le, RDAddress page_va, u32 page_idx,
                         tgt_off = (u32)off16;
                     }
                 }
+                if((src_type & LE_FIXUP_SOURCE_MASK) ==
+                   LE_FIXUP_SOURCE_PTR_32) {
+                    u32 ptr32 =
+                        ((u32)(obj_idx & 0xFFFF) << 16) | (tgt_off & 0xFFFF);
+                    current_target = (RDAddress)ptr32;
+                }
+                else
+                    current_target = le_seg_address(le, obj_idx, tgt_off);
 
-                current_target = le_seg_address(le, obj_idx, tgt_off);
                 break;
             }
 
