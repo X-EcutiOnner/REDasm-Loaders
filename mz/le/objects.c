@@ -56,7 +56,8 @@ static bool _le_object_map_pages(RDReader* r, const LEFormat* le,
 
         if(le->is_lx) {
             const LEPageLX* lxp = &page.lx;
-            offset = lxp->page_offset << le->header.page_shift;
+            offset = le->header.page_off +
+                     (lxp->page_offset << le->header.page_shift);
             size = (u32)lxp->data_size;
             flags = lxp->flags;
         }
@@ -84,7 +85,6 @@ static bool _le_object_map_pages(RDReader* r, const LEFormat* le,
 
         switch(flags) {
             case LE_PAGE_PRELOAD: {
-                offset += le->header.page_off;
                 rd_map_input_n(ctx, offset, address, size);
 
                 if(page_sz > size) rd_fill(ctx, address + size, page_sz - size);
