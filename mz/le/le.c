@@ -1,8 +1,10 @@
 #include "le.h"
 #include "common/common.h"
+#include "hooks.h"
 #include "le/exports.h"
 #include "le/format.h"
 #include "le/objects.h"
+#include "le/vxd.h"
 
 static bool le_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     LEFormat* le = (LEFormat*)ldr;
@@ -22,6 +24,7 @@ static bool le_parse(RDLoader* ldr, const RDLoaderRequest* req) {
 
 static bool le_load(RDLoader* ldr, RDContext* ctx) {
     LEFormat* le = (LEFormat*)ldr;
+    le->objects = le_objectslice_create(le);
     le->imports = le_importslice_create(le, ctx);
 
     le_report_module_type(le);
@@ -33,14 +36,16 @@ static bool le_load(RDLoader* ldr, RDContext* ctx) {
     le_exports_read(le, ctx);
 
     if(le->header.eip_obj) {
-        RDAddress eip = le_seg_address(le->header.eip_obj, le->header.eip);
+        RDAddress eip = le_seg_address(le, le->header.eip_obj, le->header.eip);
         rd_set_entry_point(ctx, eip, NULL);
     }
 
     if(le->header.esp_obj) {
-        RDAddress esp = le_seg_address(le->header.esp_obj, le->header.esp);
+        RDAddress esp = le_seg_address(le, le->header.esp_obj, le->header.esp);
         rd_auto_sregval(ctx, 0, "esp", esp);
     }
+
+    if(le_is_vxd(le)) le_load_vxd(le, ctx);
 
     return true;
 }
@@ -52,6 +57,7 @@ static RDLoader* le_create(const RDLoaderPlugin* plugin) {
 
 static void le_destroy(RDLoader* ldr) {
     LEFormat* le = (LEFormat*)ldr;
+    le_objectslice_destroy(&le->objects);
     le_importslice_destroy(&le->imports);
     rd_free(le);
 }

@@ -20,6 +20,7 @@ target_sources(${PROJECT_NAME}
         le/le.c
         le/objects.c
         le/pages.c
+        le/vxd.c
         mz/mz.c
         ne/entries.c
         ne/exports.c

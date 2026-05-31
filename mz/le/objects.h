@@ -1,6 +1,6 @@
 #pragma once
 
-#include "le/format.h"
+#include <redasm/redasm.h>
 
 #define LE_OBJ_READABLE 0x0001
 #define LE_OBJ_WRITEABLE 0x0002
@@ -20,4 +20,22 @@
 #define LE_OBJ_CONFORMING 0x4000
 #define LE_OBJ_IOPL 0x8000
 
+typedef struct LEFormat LEFormat;
+
+typedef struct LEObject {
+    u32 size;
+    u32 addr;
+    u32 flags;
+    u32 mapidx;
+    u32 mapsize;
+    char name[4];
+} LEObject;
+
+typedef struct LEObjectSlice {
+    LEObject* data;
+    usize length;
+} LEObjectSlice;
+
+LEObjectSlice le_objectslice_create(const LEFormat* le);
+void le_objectslice_destroy(LEObjectSlice* self);
 bool le_segments_load(LEFormat* le, RDContext* ctx);

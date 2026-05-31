@@ -10,6 +10,22 @@
 #define LE_PAGE_ZEROED 3
 #define LE_PAGE_RANGE 4
 
+typedef struct LEPageLE {
+    u8 page_num[3];
+    u8 flags;
+} LEPageLE;
+
+typedef struct LEPageLX {
+    u32 page_offset;
+    u16 data_size;
+    u16 flags;
+} LEPageLX;
+
+typedef union LEPage {
+    LEPageLE le;
+    LEPageLX lx;
+} LEPage;
+
 static inline u32 le_get_page_size(const LEFormat* le) {
     return le->header.page_size ? le->header.page_size : LE_PAGE_ALIGN;
 }

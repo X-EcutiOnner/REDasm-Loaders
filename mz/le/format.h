@@ -5,6 +5,7 @@
 
 #include "common/common.h"
 #include "le/imports.h"
+#include "le/objects.h"
 #include <redasm/redasm.h>
 
 #define LE_PLUGIN_ID "mz_linear"
@@ -15,6 +16,22 @@
 
 #define LE_FLAG_NO_INTERNAL_FIXUPS 0x00000010
 #define LE_FLAG_NO_EXTERNAL_FIXUPS 0x00000020
+
+#define LE_MOD_MASK 0x38000
+#define LE_MOD_EXE 0
+#define LE_MOD_DLL 0x08000
+#define LE_MOD_PDD 0x20000
+#define LE_MOD_VDD 0x28000
+
+#define LE_MOD_CPU_80286 1
+#define LE_MOD_CPU_80386 2
+#define LE_MOD_CPU_80486 3
+
+#define LE_MOD_OS_OS2 1
+#define LE_MOD_OS_WIN 2
+#define LE_MOD_OS_DOS 3
+#define LE_MOD_OS_WIN386 4
+
 
 typedef struct LEHeader {
     u8 byte_order;
@@ -90,43 +107,14 @@ typedef struct LEFormat {
     bool is_lx;
 
     LEImportSlice imports;
+    LEObjectSlice objects;
 } LEFormat;
-
-typedef struct LEObject {
-    u32 size;
-    u32 addr;
-    u32 flags;
-    u32 mapidx;
-    u32 mapsize;
-    char name[4];
-} LEObject;
-
-typedef struct LEPageLE {
-    u8 page_num[3];
-    u8 flags;
-} LEPageLE;
-
-typedef struct LEPageLX {
-    u32 page_offset;
-    u16 data_size;
-    u16 flags;
-} LEPageLX;
-
-typedef union LEPage {
-    LEPageLE le;
-    LEPageLX lx;
-} LEPage;
 
 static inline bool le_is_be(const LEHeader* h) {
     return h->byte_order == LE_BYTEORDER_BIG;
 }
 
-// Compute the flat address of a segment-relative reference.
-// seg_idx is 1-based
-static inline RDAddress le_seg_address(u32 seg_idx, u32 offset) {
-    return ((RDAddress)seg_idx * LE_SEG_SLOT) + offset;
-}
-
+RDAddress le_seg_address(const LEFormat* le, u32 obj_idx, u32 offset);
 void le_report_module_type(const LEFormat* le);
 void le_report_cpu_type(const LEFormat* le);
 void le_report_os_type(const LEFormat* le);

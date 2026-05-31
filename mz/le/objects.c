@@ -1,7 +1,16 @@
 #include "objects.h"
 #include "le/fixup.h"
+#include "le/format.h"
 #include "le/pages.h"
+#include "le/vxd.h"
 #include <inttypes.h>
+
+#define LE_MEM_ALIGN 0x1000U
+
+static RDAddress _le_unbound_base(const LEFormat* le) {
+    if(le_is_vxd(le)) return 0xC0000000U; // VxD: system arena
+    return 0x00010000U;                   // DOS4GW: private arena
+}
 
 static const char* _le_object_name(const LEObject* obj, u32 idx) {
     if(obj->name[0]) return rd_format("%.4s", obj->name);
@@ -110,33 +119,52 @@ static bool _le_object_map_pages(RDReader* r, const LEFormat* le,
     return true;
 }
 
+LEObjectSlice le_objectslice_create(const LEFormat* le) {
+    u32 n = le->header.num_objects;
+    if(!n) return (LEObjectSlice){0};
+
+    return (LEObjectSlice){
+        .data = rd_alloc0(n, sizeof(LEObject)),
+        .length = n,
+    };
+}
+
+void le_objectslice_destroy(LEObjectSlice* self) {
+    rd_free(self->data);
+    self->length = 0;
+}
+
 bool le_segments_load(LEFormat* le, RDContext* ctx) {
     if(!le->header.objtab_off || !le->header.num_objects) return true;
 
     RDReader* r = rd_get_input_reader(ctx);
     rd_reader_seek(r, le->base + le->header.objtab_off);
 
-    u32 page_size = le_get_page_size(le);
+    u32 cursor = _le_unbound_base(le);
 
+    // read all objects first...
+    rd_reader_begin(r);
     for(u32 i = 0; i < le->header.num_objects; i++) {
-        LEObject obj;
-        if(!_le_read_object(r, &obj)) return false;
-        if(!obj.size) continue;
+        LEObject* obj = &le->objects.data[i];
+        if(!_le_read_object(r, obj)) return false;
+        obj->addr = cursor;
+        cursor += rd_align_up(obj->size, LE_MEM_ALIGN);
+    }
+    rd_reader_end(r);
 
-        RDSegmentPerm perm = _le_object_perm(&obj);
+    // ...and then load pages
+    for(u32 i = 0; i < le->objects.length; i++) {
+        const LEObject* obj = &le->objects.data[i];
+
+        RDSegmentPerm perm = _le_object_perm(obj);
         if(perm == RD_SP_NONE) continue;
 
-        u32 seg_idx = i + 1;
-
-        // generate a flat 32-bit address space
-        obj.addr = le_seg_address(seg_idx, 0);
-        usize size = rd_align_up(obj.size, page_size);
-
-        const char* name = _le_object_name(&obj, seg_idx);
-        rd_map_segment_n(ctx, name, obj.addr, size, perm);
+        usize size = rd_align_up(obj->size, le_get_page_size(le));
+        const char* name = _le_object_name(obj, i + 1);
+        rd_map_segment_n(ctx, name, obj->addr, size, perm);
 
         rd_reader_begin(r);
-        _le_object_map_pages(r, le, &obj, ctx);
+        _le_object_map_pages(r, le, obj, ctx);
         rd_reader_end(r);
     }
 

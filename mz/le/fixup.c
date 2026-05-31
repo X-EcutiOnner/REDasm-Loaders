@@ -123,7 +123,7 @@ void le_fixup_apply(const LEFormat* le, RDAddress page_va, u32 page_idx,
                     }
                 }
 
-                current_target = le_seg_address(obj_idx, tgt_off);
+                current_target = le_seg_address(le, obj_idx, tgt_off);
                 break;
             }
 
