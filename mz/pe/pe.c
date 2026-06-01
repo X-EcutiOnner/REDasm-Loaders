@@ -194,11 +194,15 @@ static void pe_destroy(RDLoader* ldr) {
 static const char* pe_get_name(const RDLoader* ldr) {
     const PEFormat* pe = (const PEFormat*)ldr;
 
-    if(pe->dotnet_version > 0)
-        return rd_format(".NET %d.x Executable", pe->dotnet_version);
+    const char* pe_kind =
+        pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC ? "PE32+" : "PE32";
 
-    if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) return "PE64 Executable";
-    return "PE32 Executable";
+    if(pe->dotnet_version > 0) {
+        return rd_format("Microsoft .NET %d.x Executable (%s)",
+                         pe->dotnet_version, pe_kind);
+    }
+
+    return rd_format("Portable Executable (%s)", pe_kind);
 }
 
 static const char* pe_get_processor(const RDLoader* ldr) {
