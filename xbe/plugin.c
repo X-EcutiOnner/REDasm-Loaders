@@ -26,7 +26,6 @@ static void _xbe_read_kernel_thunks(const XBEFormat* xbe, RDContext* ctx) {
         if(!rd_read_le32(ctx, addr, &slot) || !slot) break;
 
         u32 ordinal = slot & 0x7FFFFFFFU;
-
         rd_set_imported_ord(ctx, addr, "XBoxKernel", ordinal);
         addr += sizeof(u32);
     }
@@ -139,16 +138,13 @@ static bool xbe_load(RDLoader* ldr, RDContext* ctx) {
         const char* name = xbe_read_section_name(r, xbe, &shdr);
         rd_reader_end(r);
 
-        RDSegmentPerm perm = xbe_segment_perm(&shdr);
-
-        RDAddress address = shdr.VirtualAddress;
-
-        if(!rd_map_segment_n(ctx, name, address, shdr.VirtualSize, perm))
+        if(!rd_map_segment_n(ctx, name, shdr.VirtualAddress, shdr.VirtualSize,
+                             xbe_segment_perm(&shdr)))
             continue;
 
         if(!shdr.RawOffset || !shdr.RawSize) continue;
 
-        rd_map_input_n(ctx, shdr.RawOffset, address,
+        rd_map_input_n(ctx, shdr.RawOffset, shdr.VirtualAddress,
                        shdr.RawSize < shdr.VirtualSize ? shdr.RawSize
                                                        : shdr.VirtualSize);
     }
