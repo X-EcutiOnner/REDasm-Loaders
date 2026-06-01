@@ -91,16 +91,13 @@ static RDLoader* mz_create(const RDLoaderPlugin* plugin) {
 
 static void mz_destroy(RDLoader* ldr) { rd_free(ldr); }
 
-static const char* mz_get_name(const RDLoader* ldr,
-                               const RDLoaderPlugin* plugin) {
+static const char* mz_get_name(const RDLoader* ldr) {
     RD_UNUSED(ldr);
-    RD_UNUSED(plugin);
     return "DOS MZ Executable";
 }
 
-static const char* mz_get_processor(RDLoader* ldr, const RDContext* ctx) {
+static const char* mz_get_processor(const RDLoader* ldr) {
     RD_UNUSED(ldr);
-    RD_UNUSED(ctx);
     return "x86_16_real";
 }
 

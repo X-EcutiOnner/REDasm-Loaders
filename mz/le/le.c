@@ -61,12 +61,8 @@ static void le_destroy(RDLoader* ldr) {
     rd_free(le);
 }
 
-static const char* le_get_name(const RDLoader* ldr,
-                               const RDLoaderPlugin* plugin) {
-    RD_UNUSED(plugin);
-
+static const char* le_get_name(const RDLoader* ldr) {
     const LEFormat* le = (const LEFormat*)ldr;
-
     if(le_is_vxd(le)) return "Virtual Device Driver (VxD)";
 
     const char* t = le->is_lx ? "LX" : "LE";
@@ -83,9 +79,8 @@ static const char* le_get_name(const RDLoader* ldr,
     return rd_format("%s Executable", t);
 }
 
-static const char* le_get_processor(RDLoader* ldr, const RDContext* ctx) {
+static const char* le_get_processor(const RDLoader* ldr) {
     RD_UNUSED(ldr);
-    RD_UNUSED(ctx);
     return "x86_32";
 }
 

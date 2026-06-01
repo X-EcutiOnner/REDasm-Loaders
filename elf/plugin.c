@@ -247,19 +247,14 @@ static bool elf_load(RDLoader* ldr, RDContext* ctx) {
     return true;
 }
 
-static const char* elf_get_name(const RDLoader* ldr,
-                                const RDLoaderPlugin* plugin) {
-    RD_UNUSED(plugin);
-
+static const char* elf_get_name(const RDLoader* ldr) {
     const ELFFormat* elf = (const ELFFormat*)ldr;
     if(elf_get_bits(elf) == 64) return "ELF64 Executable";
     return "ELF32 Executable";
 }
 
-static const char* elf_get_processor(RDLoader* ldr, const RDContext* ctx) {
-    RD_UNUSED(ctx);
-
-    ELFFormat* elf = (ELFFormat*)ldr;
+static const char* elf_get_processor(const RDLoader* ldr) {
+    const ELFFormat* elf = (const ELFFormat*)ldr;
     bool is_be = elf_is_be(elf);
 
     switch(elf->ehdr.e_machine) {

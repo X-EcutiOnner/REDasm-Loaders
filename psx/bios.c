@@ -81,16 +81,13 @@ static bool psxbios_load(RDLoader* ldr, RDContext* ctx) {
     return rd_set_entry_point(ctx, PSX_BIOS_BASE, "PSX_Reset");
 }
 
-static const char* psxbios_get_name(const RDLoader* ldr,
-                                    const RDLoaderPlugin* plugin) {
+static const char* psxbios_get_name(const RDLoader* ldr) {
     RD_UNUSED(ldr);
-    RD_UNUSED(plugin);
     return "Sony PlayStation 1 BIOS";
 }
 
-static const char* psxbios_get_processor(RDLoader* ldr, const RDContext* ctx) {
+static const char* psxbios_get_processor(const RDLoader* ldr) {
     RD_UNUSED(ldr);
-    RD_UNUSED(ctx);
     return "mips32_le";
 }
 

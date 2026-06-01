@@ -114,16 +114,13 @@ static RDLoader* ne_create(const RDLoaderPlugin* plugin) {
 
 static void ne_destroy(RDLoader* ldr) { rd_free(ldr); }
 
-static const char* ne_get_name(const RDLoader* ldr,
-                               const RDLoaderPlugin* plugin) {
+static const char* ne_get_name(const RDLoader* ldr) {
     RD_UNUSED(ldr);
-    RD_UNUSED(plugin);
     return "New Executable";
 }
 
-static const char* ne_get_processor(RDLoader* ldr, const RDContext* ctx) {
+static const char* ne_get_processor(const RDLoader* ldr) {
     RD_UNUSED(ldr);
-    RD_UNUSED(ctx);
     return "x86_16";
 }
 

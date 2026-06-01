@@ -77,16 +77,13 @@ static bool psx_load(RDLoader* ldr, RDContext* ctx) {
     return rd_set_entry_point(ctx, h->pc0, "PSX_EntryPoint");
 }
 
-static const char* psx_get_name(const RDLoader* ldr,
-                                const RDLoaderPlugin* plugin) {
+static const char* psx_get_name(const RDLoader* ldr) {
     RD_UNUSED(ldr);
-    RD_UNUSED(plugin);
     return "Sony PlayStation 1 Executable";
 }
 
-static const char* psx_get_processor(RDLoader* ldr, const RDContext* ctx) {
+static const char* psx_get_processor(const RDLoader* ldr) {
     RD_UNUSED(ldr);
-    RD_UNUSED(ctx);
     return "mips32_le";
 }
 

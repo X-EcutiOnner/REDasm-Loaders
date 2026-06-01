@@ -191,10 +191,7 @@ static void pe_destroy(RDLoader* ldr) {
     rd_free(ldr);
 }
 
-static const char* pe_get_name(const RDLoader* ldr,
-                               const RDLoaderPlugin* plugin) {
-    RD_UNUSED(plugin);
-
+static const char* pe_get_name(const RDLoader* ldr) {
     const PEFormat* pe = (const PEFormat*)ldr;
 
     if(pe->dotnet_version > 0)
@@ -204,10 +201,8 @@ static const char* pe_get_name(const RDLoader* ldr,
     return "PE32 Executable";
 }
 
-static const char* pe_get_processor(RDLoader* ldr, const RDContext* ctx) {
-    RD_UNUSED(ctx);
-
-    PEFormat* pe = (PEFormat*)ldr;
+static const char* pe_get_processor(const RDLoader* ldr) {
+    const PEFormat* pe = (const PEFormat*)ldr;
 
     switch(pe->fileheader.Machine) {
         case PE_FILE_MACHINE_ARM:

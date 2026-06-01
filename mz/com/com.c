@@ -27,16 +27,13 @@ static bool com_load(RDLoader* ldr, RDContext* ctx) {
     return true;
 }
 
-static const char* com_get_name(const RDLoader* ldr,
-                                const RDLoaderPlugin* plugin) {
+static const char* com_get_name(const RDLoader* ldr) {
     RD_UNUSED(ldr);
-    RD_UNUSED(plugin);
     return "COM Executable";
 }
 
-static const char* com_get_processor(RDLoader* ldr, const RDContext* ctx) {
+static const char* com_get_processor(const RDLoader* ldr) {
     RD_UNUSED(ldr);
-    RD_UNUSED(ctx);
     return "x86_16_real";
 }
 
