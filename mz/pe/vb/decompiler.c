@@ -2,7 +2,6 @@
 #include "pe/format.h"
 #include "pe/vb/components.h"
 #include "pe/vb/format.h"
-#include "pe/vb/ordinals.h"
 #include <string.h>
 
 static const RDInstruction PE_VB_ENTRY_MATCH[] = {
@@ -164,19 +163,6 @@ done:
     return !rd_reader_has_error(r);
 }
 
-static void _pe_rename_imports(RDContext* ctx) {
-    RDAddressSlice imports = rd_get_all_imported(ctx);
-
-    const RDAddress* it;
-    rd_slice_each(it, imports) {
-        RDImported imp;
-        if(!rd_get_imported(ctx, *it, &imp)) continue;
-
-        const char* name = pe_vb_ordinals_get_name(ctx, &imp);
-        if(name) rd_set_imported(ctx, *it, imp.module, name);
-    }
-}
-
 static bool pe_vb_decompiler_is_enabled(RDContext* ctx,
                                         const struct RDAnalyzerPlugin* plugin) {
     RD_UNUSED(plugin);
@@ -218,8 +204,6 @@ static void pe_vb_decompiler_execute(RDContext* ctx) {
     if(!pe_vb_read_header(r, &vb_header) ||
        strncmp("VB5!", vb_header.szVbMagic, PE_VB_SIGNATURE_SIZE) != 0)
         return;
-
-    _pe_rename_imports(ctx);
 
     _pe_vb_apply_header_str(vb_base, r, vb_header.bszProjectDescription,
                             "vb_proj_desc", ctx);

@@ -160,11 +160,13 @@ bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
         if(mod) {
             char* import_stem = _pe_get_import_name_stem(mod);
 
-            // try to load KB
             const char* kb_path =
                 rd_format("os/win32/functions/%s", import_stem);
-
             rd_kb_load(ctx, kb_path);
+
+            kb_path = rd_format("os/win32/ordinals/%s", import_stem);
+            rd_kb_load(ctx, kb_path);
+
             rd_free(import_stem);
 
             rd_library_type(ctx, name_va, "char", strlen(mod) + 1,
