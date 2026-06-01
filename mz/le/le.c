@@ -61,6 +61,28 @@ static void le_destroy(RDLoader* ldr) {
     rd_free(le);
 }
 
+static const char* le_get_name(const RDLoader* ldr,
+                               const RDLoaderPlugin* plugin) {
+    RD_UNUSED(plugin);
+
+    const LEFormat* le = (const LEFormat*)ldr;
+
+    if(le_is_vxd(le)) return "Virtual Device Driver (VxD)";
+
+    const char* t = le->is_lx ? "LX" : "LE";
+
+    if((le->header.flags & LE_MOD_VDD) == LE_MOD_VDD)
+        return rd_format("%s Virtual Device Driver", t);
+
+    if((le->header.flags & LE_MOD_PDD) == LE_MOD_PDD)
+        return rd_format("%s Physical Device Driver", t);
+
+    if(le->header.flags & LE_MOD_DLL)
+        return rd_format("%s Dynamic module (DLL)", t);
+
+    return rd_format("%s Executable", t);
+}
+
 static const char* le_get_processor(RDLoader* ldr, const RDContext* ctx) {
     RD_UNUSED(ldr);
     RD_UNUSED(ctx);
@@ -70,10 +92,10 @@ static const char* le_get_processor(RDLoader* ldr, const RDContext* ctx) {
 const RDLoaderPlugin LE_LOADER = {
     .level = RD_API_LEVEL,
     .id = LE_PLUGIN_ID,
-    .name = "Linear Executable",
+    .get_name = le_get_name,
+    .get_processor = le_get_processor,
     .create = le_create,
     .destroy = le_destroy,
     .parse = le_parse,
     .load = le_load,
-    .get_processor = le_get_processor,
 };

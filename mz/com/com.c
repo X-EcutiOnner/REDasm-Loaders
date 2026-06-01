@@ -27,6 +27,13 @@ static bool com_load(RDLoader* ldr, RDContext* ctx) {
     return true;
 }
 
+static const char* com_get_name(const RDLoader* ldr,
+                                const RDLoaderPlugin* plugin) {
+    RD_UNUSED(ldr);
+    RD_UNUSED(plugin);
+    return "COM Executable";
+}
+
 static const char* com_get_processor(RDLoader* ldr, const RDContext* ctx) {
     RD_UNUSED(ldr);
     RD_UNUSED(ctx);
@@ -36,8 +43,8 @@ static const char* com_get_processor(RDLoader* ldr, const RDContext* ctx) {
 const RDLoaderPlugin COM_LOADER = {
     .level = RD_API_LEVEL,
     .id = "dos_com",
-    .name = "COM Executable",
+    .get_name = com_get_name,
+    .get_processor = com_get_processor,
     .parse = com_parse,
     .load = com_load,
-    .get_processor = com_get_processor,
 };

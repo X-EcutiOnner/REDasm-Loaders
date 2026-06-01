@@ -82,10 +82,26 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     }
 
     for(int i = 0; i < PE_NUMBER_OF_DIRECTORY_ENTRIES; i++) {
-        rd_reader_read_le32(req->input, &pe->datadir[i].VirtualAddress);
-        rd_reader_read_le32(req->input, &pe->datadir[i].Size);
+        rd_reader_read_le32(req->input, &pe->data_dirs[i].VirtualAddress);
+        rd_reader_read_le32(req->input, &pe->data_dirs[i].Size);
     }
 
+    if(pe->fileheader.NumberOfSections) {
+        pe->sections =
+            rd_alloc0(pe->fileheader.NumberOfSections, sizeof(PESectionHeader));
+
+        const u32 FIRST_SECTION =
+            pe->dosheader.e_lfanew + pe->fileheader.SizeOfOptionalHeader + 0x18;
+
+        rd_reader_seek(req->input, FIRST_SECTION);
+
+        for(u16 i = 0; i < pe->fileheader.NumberOfSections; i++) {
+            if(!pe_read_section_header(req->input, &pe->sections[i]))
+                return false;
+        }
+    }
+
+    pe->dotnet_version = pe_dotnet_get_major(req->input, pe);
     return !rd_reader_has_error(req->input);
 }
 
@@ -95,30 +111,29 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     PEFormat* pe = (PEFormat*)ldr;
     pe_set_bits(pe);
 
-    for(usize i = 0; i < pe->fileheader.NumberOfSections; i++) {
-        PESectionHeader s;
-        if(!pe_read_section_header(ctx, pe, i, &s)) continue;
+    for(u16 i = 0; i < pe->fileheader.NumberOfSections; i++) {
+        PESectionHeader* s = &pe->sections[i];
 
         u32 perm = 0;
 
-        if(s.Characteristics & PE_SCN_MEM_EXECUTE ||
-           (pe->entrypoint >= s.VirtualAddress &&
-            pe->entrypoint < s.VirtualAddress + s.VirtualSize)) {
+        if(s->Characteristics & PE_SCN_MEM_EXECUTE ||
+           (pe->entrypoint >= s->VirtualAddress &&
+            pe->entrypoint < s->VirtualAddress + s->VirtualSize)) {
             perm |= RD_SP_X;
         }
 
-        if(s.Characteristics & PE_SCN_MEM_READ) perm |= RD_SP_R;
-        if(s.Characteristics & PE_SCN_MEM_WRITE) perm |= RD_SP_W;
+        if(s->Characteristics & PE_SCN_MEM_READ) perm |= RD_SP_R;
+        if(s->Characteristics & PE_SCN_MEM_WRITE) perm |= RD_SP_W;
 
         // if section name is exactly PE_SIZEOF_SHORT_NAME long
         // it needs a null terminator (not included in PE Header)
         char section_name[PE_SIZE_OF_SHORT_NAME + 1] = {0};
-        memcpy(section_name, s.Name, PE_SIZE_OF_SHORT_NAME);
+        memcpy(section_name, s->Name, PE_SIZE_OF_SHORT_NAME);
 
-        RDAddress addr = pe->imagebase + s.VirtualAddress;
+        RDAddress addr = pe->imagebase + s->VirtualAddress;
 
-        u32 vsize = s.VirtualSize;
-        if(!vsize) vsize = s.SizeOfRawData;
+        u32 vsize = s->VirtualSize;
+        if(!vsize) vsize = s->SizeOfRawData;
 
         if(pe->section_align) {
             u32 diff = vsize % pe->section_align;
@@ -127,14 +142,15 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
 
         rd_map_segment_n(ctx, section_name, addr, vsize, perm);
 
-        if(s.PointerToRawData) {
-            rd_map_input_n(ctx, s.PointerToRawData, addr,
-                           s.VirtualSize < s.SizeOfRawData ? s.VirtualSize
-                                                           : s.SizeOfRawData);
+        if(s->PointerToRawData) {
+            rd_map_input_n(ctx, s->PointerToRawData, addr,
+                           s->VirtualSize < s->SizeOfRawData
+                               ? s->VirtualSize
+                               : s->SizeOfRawData);
         }
     }
 
-    if(pe_dotnet_get_major(ctx, pe)) {
+    if(pe->dotnet_version > 0) {
         rd_log(RD_LOG_FAIL, PE_PLUGIN_ID, ".NET is not supported");
         return false;
     }
@@ -169,7 +185,24 @@ static RDLoader* pe_create(const RDLoaderPlugin* plugin) {
     return rd_alloc0(1, sizeof(PEFormat));
 }
 
-static void pe_destroy(RDLoader* ldr) { rd_free(ldr); }
+static void pe_destroy(RDLoader* ldr) {
+    PEFormat* pe = (PEFormat*)ldr;
+    rd_free(pe->sections);
+    rd_free(ldr);
+}
+
+static const char* pe_get_name(const RDLoader* ldr,
+                               const RDLoaderPlugin* plugin) {
+    RD_UNUSED(plugin);
+
+    const PEFormat* pe = (const PEFormat*)ldr;
+
+    if(pe->dotnet_version > 0)
+        return rd_format(".NET %d.x Executable", pe->dotnet_version);
+
+    if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) return "PE64 Executable";
+    return "PE32 Executable";
+}
 
 static const char* pe_get_processor(RDLoader* ldr, const RDContext* ctx) {
     RD_UNUSED(ctx);
@@ -194,10 +227,10 @@ static const char* pe_get_processor(RDLoader* ldr, const RDContext* ctx) {
 const RDLoaderPlugin PE_LOADER = {
     .level = RD_API_LEVEL,
     .id = PE_PLUGIN_ID,
-    .name = "Portable Executable",
+    .get_name = pe_get_name,
+    .get_processor = pe_get_processor,
     .create = pe_create,
     .destroy = pe_destroy,
     .parse = pe_parse,
     .load = pe_load,
-    .get_processor = pe_get_processor,
 };

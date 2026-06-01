@@ -81,7 +81,7 @@ static void _pe_resource_read_dirs(RDContext* ctx, PEFormat* pe, RDReader* r,
 }
 
 bool pe_resources_read(RDContext* ctx, PEFormat* pe) {
-    PEDataDirectory d = pe->datadir[PE_DIRECTORY_ENTRY_RESOURCE];
+    PEDataDirectory d = pe->data_dirs[PE_DIRECTORY_ENTRY_RESOURCE];
 
     RDAddress va;
     if(!pe_from_rva(pe, d.VirtualAddress, &va)) return false;

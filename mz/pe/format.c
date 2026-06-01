@@ -35,14 +35,7 @@ void pe_set_bits(PEFormat* pe) {
     pe->bits = 32;
 }
 
-bool pe_read_section_header(RDContext* ctx, PEFormat* pe, int idx,
-                            PESectionHeader* s) {
-    const u32 FIRST_SECTION =
-        pe->dosheader.e_lfanew + pe->fileheader.SizeOfOptionalHeader + 0x18;
-
-    RDReader* r = rd_get_input_reader(ctx);
-    rd_reader_seek(r, FIRST_SECTION + (idx * sizeof(PESectionHeader)));
-
+bool pe_read_section_header(RDReader* r, PESectionHeader* s) {
     rd_reader_read(r, &s->Name, PE_SIZE_OF_SHORT_NAME);
     rd_reader_read_le32(r, &s->VirtualSize);
     rd_reader_read_le32(r, &s->VirtualAddress);

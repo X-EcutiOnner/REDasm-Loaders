@@ -81,6 +81,13 @@ static bool psxbios_load(RDLoader* ldr, RDContext* ctx) {
     return rd_set_entry_point(ctx, PSX_BIOS_BASE, "PSX_Reset");
 }
 
+static const char* psxbios_get_name(const RDLoader* ldr,
+                                    const RDLoaderPlugin* plugin) {
+    RD_UNUSED(ldr);
+    RD_UNUSED(plugin);
+    return "Sony PlayStation 1 BIOS";
+}
+
 static const char* psxbios_get_processor(RDLoader* ldr, const RDContext* ctx) {
     RD_UNUSED(ldr);
     RD_UNUSED(ctx);
@@ -90,8 +97,8 @@ static const char* psxbios_get_processor(RDLoader* ldr, const RDContext* ctx) {
 const RDLoaderPlugin PSX_BIOS_LOADER = {
     .level = RD_API_LEVEL,
     .id = "psx_bios",
-    .name = "Sony PlayStation 1 BIOS",
+    .get_name = psxbios_get_name,
+    .get_processor = psxbios_get_processor,
     .parse = psxbios_parse,
     .load = psxbios_load,
-    .get_processor = psxbios_get_processor,
 };

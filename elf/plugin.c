@@ -200,7 +200,6 @@ static void elf_destroy(RDLoader* ldr) { rd_free(ldr); }
 
 static bool elf_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     ELFFormat* elf = (ELFFormat*)ldr;
-
     rd_reader_read(req->input, &elf->ident, sizeof(elf->ident));
     if(rd_reader_has_error(req->input)) return false;
 
@@ -248,6 +247,15 @@ static bool elf_load(RDLoader* ldr, RDContext* ctx) {
     return true;
 }
 
+static const char* elf_get_name(const RDLoader* ldr,
+                                const RDLoaderPlugin* plugin) {
+    RD_UNUSED(plugin);
+
+    const ELFFormat* elf = (const ELFFormat*)ldr;
+    if(elf_get_bits(elf) == 64) return "ELF64 Executable";
+    return "ELF32 Executable";
+}
+
 static const char* elf_get_processor(RDLoader* ldr, const RDContext* ctx) {
     RD_UNUSED(ctx);
 
@@ -277,12 +285,12 @@ static const char* elf_get_processor(RDLoader* ldr, const RDContext* ctx) {
 static const RDLoaderPlugin ELF_LOADER = {
     .level = RD_API_LEVEL,
     .id = "elf",
-    .name = "ELF Executable",
+    .get_name = elf_get_name,
+    .get_processor = elf_get_processor,
     .create = elf_create,
     .destroy = elf_destroy,
     .parse = elf_parse,
     .load = elf_load,
-    .get_processor = elf_get_processor,
 };
 
 void rd_plugin_create(void) { rd_register_loader(&ELF_LOADER); }

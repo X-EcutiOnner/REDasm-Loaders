@@ -91,6 +91,13 @@ static RDLoader* mz_create(const RDLoaderPlugin* plugin) {
 
 static void mz_destroy(RDLoader* ldr) { rd_free(ldr); }
 
+static const char* mz_get_name(const RDLoader* ldr,
+                               const RDLoaderPlugin* plugin) {
+    RD_UNUSED(ldr);
+    RD_UNUSED(plugin);
+    return "DOS MZ Executable";
+}
+
 static const char* mz_get_processor(RDLoader* ldr, const RDContext* ctx) {
     RD_UNUSED(ldr);
     RD_UNUSED(ctx);
@@ -100,10 +107,10 @@ static const char* mz_get_processor(RDLoader* ldr, const RDContext* ctx) {
 const RDLoaderPlugin MZ_LOADER = {
     .level = RD_API_LEVEL,
     .id = "dos_mz",
-    .name = "DOS MZ Executable",
+    .get_name = mz_get_name,
+    .get_processor = mz_get_processor,
     .create = mz_create,
     .destroy = mz_destroy,
     .parse = mz_parse,
     .load = mz_load,
-    .get_processor = mz_get_processor,
 };

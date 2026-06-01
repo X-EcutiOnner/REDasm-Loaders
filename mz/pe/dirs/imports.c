@@ -141,7 +141,7 @@ bool pe_imports_read_descriptor(RDReader* r, PEImportDescriptor* desc) {
 }
 
 bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
-    PEDataDirectory d = pe->datadir[PE_DIRECTORY_ENTRY_IMPORT];
+    PEDataDirectory d = pe->data_dirs[PE_DIRECTORY_ENTRY_IMPORT];
 
     RDAddress va;
     if(!pe_from_rva(pe, d.VirtualAddress, &va)) return false;

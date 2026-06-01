@@ -34,7 +34,7 @@ static const char* const PE_CLASSIFY_STRING[] = {
 
 static PEClassification _pe_classify_imports(const PEFormat* pe,
                                              RDContext* ctx) {
-    PEDataDirectory d = pe->datadir[PE_DIRECTORY_ENTRY_IMPORT];
+    PEDataDirectory d = pe->data_dirs[PE_DIRECTORY_ENTRY_IMPORT];
 
     RDAddress va;
     if(!pe_from_rva(pe, d.VirtualAddress, &va)) return PE_CLASS_NONE;
@@ -54,12 +54,6 @@ static PEClassification _pe_classify_imports(const PEFormat* pe,
         if(!rd_stricmp(mod, "msvbvm60.dll")) return PE_CLASS_VISUAL_BASIC_6;
 
         if(rd_stristr(mod, "libstdc++") == mod) return PE_CLASS_MINGW;
-
-        if(!rd_stricmp(mod, "mscoree.dll")) {
-            int major = pe_dotnet_get_major(ctx, pe);
-            if(major == 1) return PE_CLASS_DOTNET_1;
-            return PE_CLASS_DOTNET_2_X;
-        }
 
         if(!rd_stricmp(mod, "msvcp40.dll")) return PE_CLASS_VISUAL_STUDIO_4;
         if(!rd_stricmp(mod, "msvcp50.dll")) return PE_CLASS_VISUAL_STUDIO_5;
@@ -117,6 +111,9 @@ static PEClassification _pe_classify_imports(const PEFormat* pe,
 }
 
 PEClassification pe_classify(const PEFormat* pe, RDContext* ctx) {
+    if(pe->dotnet_version == 1) return PE_CLASS_DOTNET_1;
+    if(pe->dotnet_version > 1) return PE_CLASS_DOTNET_2_X;
+
     return _pe_classify_imports(pe, ctx);
 }
 

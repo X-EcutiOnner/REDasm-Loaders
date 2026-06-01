@@ -92,7 +92,7 @@ static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
 }
 
 bool pe_read_debug(RDContext* ctx, PEFormat* pe) {
-    PEDataDirectory d = pe->datadir[PE_DIRECTORY_ENTRY_DEBUG];
+    PEDataDirectory d = pe->data_dirs[PE_DIRECTORY_ENTRY_DEBUG];
     if(!d.VirtualAddress || !d.Size) return false;
 
     RDAddress va;

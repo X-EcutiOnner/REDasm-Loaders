@@ -8,4 +8,4 @@ typedef struct PECorHeader {
     u16 MajorRuntimeVersion, MinorRuntimeVersion;
 } PECorHeader;
 
-int pe_dotnet_get_major(RDContext* ctx, const PEFormat* pe);
+int pe_dotnet_get_major(RDReader* r, const PEFormat* pe);

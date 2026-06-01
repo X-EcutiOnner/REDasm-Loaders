@@ -34,7 +34,7 @@ static bool _pe_is_linker_boundary(const char* name) {
 }
 
 bool pe_read_exports(RDContext* ctx, PEFormat* pe) {
-    PEDataDirectory d = pe->datadir[PE_DIRECTORY_ENTRY_EXPORT];
+    PEDataDirectory d = pe->data_dirs[PE_DIRECTORY_ENTRY_EXPORT];
 
     RDAddress va;
     if(!pe_from_rva(pe, d.VirtualAddress, &va)) return false;

@@ -77,6 +77,13 @@ static bool psx_load(RDLoader* ldr, RDContext* ctx) {
     return rd_set_entry_point(ctx, h->pc0, "PSX_EntryPoint");
 }
 
+static const char* psx_get_name(const RDLoader* ldr,
+                                const RDLoaderPlugin* plugin) {
+    RD_UNUSED(ldr);
+    RD_UNUSED(plugin);
+    return "Sony PlayStation 1 Executable";
+}
+
 static const char* psx_get_processor(RDLoader* ldr, const RDContext* ctx) {
     RD_UNUSED(ldr);
     RD_UNUSED(ctx);
@@ -86,10 +93,10 @@ static const char* psx_get_processor(RDLoader* ldr, const RDContext* ctx) {
 const RDLoaderPlugin PSX_EXE_LOADER = {
     .level = RD_API_LEVEL,
     .id = "psx_exe",
-    .name = "Sony PlayStation 1 Executable",
+    .get_name = psx_get_name,
+    .get_processor = psx_get_processor,
     .create = psx_create,
     .destroy = psx_destroy,
     .parse = psx_parse,
     .load = psx_load,
-    .get_processor = psx_get_processor,
 };

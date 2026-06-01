@@ -114,6 +114,13 @@ static RDLoader* ne_create(const RDLoaderPlugin* plugin) {
 
 static void ne_destroy(RDLoader* ldr) { rd_free(ldr); }
 
+static const char* ne_get_name(const RDLoader* ldr,
+                               const RDLoaderPlugin* plugin) {
+    RD_UNUSED(ldr);
+    RD_UNUSED(plugin);
+    return "New Executable";
+}
+
 static const char* ne_get_processor(RDLoader* ldr, const RDContext* ctx) {
     RD_UNUSED(ldr);
     RD_UNUSED(ctx);
@@ -123,10 +130,10 @@ static const char* ne_get_processor(RDLoader* ldr, const RDContext* ctx) {
 const RDLoaderPlugin NE_LOADER = {
     .level = RD_API_LEVEL,
     .id = "dos_ne",
-    .name = "New Executable",
+    .get_name = ne_get_name,
+    .get_processor = ne_get_processor,
     .create = ne_create,
     .destroy = ne_destroy,
     .parse = ne_parse,
     .load = ne_load,
-    .get_processor = ne_get_processor,
 };
