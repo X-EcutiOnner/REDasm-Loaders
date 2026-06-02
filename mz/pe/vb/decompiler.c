@@ -125,11 +125,11 @@ static bool _pe_vb_decompiler_controls(const PEVBPublicObjectDescriptor* descr,
         bool ok = pe_vb_read_control_info(r, &ctrlinfo);
 
         if(ok) {
-            rd_reader_begin(r);
+            rd_reader_save(r);
             rd_library_type(ctx, rd_reader_tell(r), "PE_VB_CONTROL_INFO", 0,
                             RD_TYPE_NONE);
             _pe_vb_decompiler_events(descr, &ctrlinfo, r, ctx);
-            rd_reader_end(r);
+            rd_reader_restore(r);
         }
     }
 
@@ -249,9 +249,9 @@ static void pe_vb_decompiler_execute(RDContext* ctx) {
         rd_reader_seek(r, object_table.lpPubObjArray);
 
         for(u16 i = 0; i < object_table.wTotalObjects; i++) {
-            rd_reader_begin(r);
+            rd_reader_save(r);
             bool ok = _pe_vb_decompiler_obj(rd_reader_tell(r), r, ctx);
-            rd_reader_end(r);
+            rd_reader_restore(r);
 
             if(!ok) break;
         }

@@ -107,13 +107,13 @@ bool pe_read_debug(RDContext* ctx, PEFormat* pe) {
         PEDebugDirectory dbgdir;
         if(!_pe_read_debug_directory(r, &dbgdir)) break;
 
-        rd_reader_begin(r);
+        rd_reader_save(r);
         rd_library_type(ctx, entry_va, "PE_DEBUG_DIRECTORY", 0, RD_TYPE_NONE);
 
         if(dbgdir.Type == PE_DEBUG_TYPE_CODEVIEW)
             _pe_read_codeview(ctx, pe, r, &dbgdir);
 
-        rd_reader_end(r);
+        rd_reader_restore(r);
     }
 
     return true;

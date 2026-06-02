@@ -25,8 +25,8 @@ static RDAddress _le_entry_address(const LEFormat* le, RDReader* r,
 
     for(;;) {
         u8 count, type;
-        rd_reader_read_u8(r, &count);
-        rd_reader_read_u8(r, &type);
+        rd_reader_read_byte(r, &count);
+        rd_reader_read_byte(r, &type);
 
         if(rd_reader_has_error(r) || count == 0) break; // end of table
 
@@ -47,7 +47,7 @@ static RDAddress _le_entry_address(const LEFormat* le, RDReader* r,
             u8 entry_flags;
             u32 entry_off = 0;
 
-            rd_reader_read_u8(
+            rd_reader_read_byte(
                 r,
                 &entry_flags); // per-entry flags (exported, uses shared data)
 
@@ -105,7 +105,7 @@ static void _le_read_name_table(const LEFormat* le, RDReader* r, u64 table_off,
 
     for(;;) {
         u8 len;
-        rd_reader_read_u8(r, &len);
+        rd_reader_read_byte(r, &len);
         if(rd_reader_has_error(r) || len == 0) break; // end of table
 
         char name[256];
@@ -120,9 +120,9 @@ static void _le_read_name_table(const LEFormat* le, RDReader* r, u64 table_off,
         // ordinal 0 = module name entry, not a function export, skip
         if(ordinal == 0) continue;
 
-        rd_reader_begin(r);
+        rd_reader_save(r);
         RDAddress addr = _le_entry_address(le, r, ordinal);
-        rd_reader_end(r);
+        rd_reader_restore(r);
 
         if(addr) rd_set_exported(ctx, addr, name);
     }

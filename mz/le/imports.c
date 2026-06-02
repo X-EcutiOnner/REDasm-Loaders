@@ -21,7 +21,7 @@ LEImportSlice le_importslice_create(const LEFormat* le, RDContext* ctx) {
 
     for(u32 i = 0; i < n; i++) {
         u8 len;
-        rd_reader_read_u8(r, &len);
+        rd_reader_read_byte(r, &len);
         if(rd_reader_has_error(r) || !len) break;
 
         char* name = rd_alloc(len + 1);
@@ -99,7 +99,7 @@ const char* le_import_proc_name(const LEFormat* le, RDReader* r, u32 name_off) {
     rd_reader_seek(r, pos);
 
     u8 len;
-    rd_reader_read_u8(r, &len);
+    rd_reader_read_byte(r, &len);
     if(rd_reader_has_error(r) || !len) return NULL;
 
     len &= 0x7F; // top bit reserved per spec

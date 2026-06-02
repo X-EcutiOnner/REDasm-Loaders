@@ -80,8 +80,8 @@ void le_fixup_apply(const LEFormat* le, RDAddress page_va, u32 page_idx,
 
     while(rd_reader_tell(r) < fixup_end) {
         u8 src_type, flags;
-        rd_reader_read_u8(r, &src_type);
-        rd_reader_read_u8(r, &flags);
+        rd_reader_read_byte(r, &src_type);
+        rd_reader_read_byte(r, &flags);
 
         bool has_srclist = (src_type & LE_FIXUP_SRCFLAG_LIST) != 0;
 
@@ -89,7 +89,7 @@ void le_fixup_apply(const LEFormat* le, RDAddress page_va, u32 page_idx,
         u8 src_cnt = 0;
 
         if(has_srclist)
-            rd_reader_read_u8(r, &src_cnt);
+            rd_reader_read_byte(r, &src_cnt);
         else
             rd_reader_read_le16(r, &src_off);
 
@@ -106,7 +106,7 @@ void le_fixup_apply(const LEFormat* le, RDAddress page_va, u32 page_idx,
                 }
                 else {
                     u8 b;
-                    rd_reader_read_u8(r, &b);
+                    rd_reader_read_byte(r, &b);
                     obj_idx = b;
                 }
 
@@ -141,7 +141,7 @@ void le_fixup_apply(const LEFormat* le, RDAddress page_va, u32 page_idx,
                 }
                 else {
                     u8 b;
-                    rd_reader_read_u8(r, &b);
+                    rd_reader_read_byte(r, &b);
                     mod_idx = b;
                 }
 
@@ -149,7 +149,7 @@ void le_fixup_apply(const LEFormat* le, RDAddress page_va, u32 page_idx,
 
                 if(flags & LE_FIXUP_TGTFLAG_ORDINAL_8BIT) {
                     u8 b;
-                    rd_reader_read_u8(r, &b);
+                    rd_reader_read_byte(r, &b);
                     ordinal = b;
                 }
                 else {
@@ -169,7 +169,7 @@ void le_fixup_apply(const LEFormat* le, RDAddress page_va, u32 page_idx,
                     rd_reader_read_le16(r, &mod_idx);
                 else {
                     u8 b;
-                    rd_reader_read_u8(r, &b);
+                    rd_reader_read_byte(r, &b);
                     mod_idx = b;
                 }
 
@@ -182,9 +182,9 @@ void le_fixup_apply(const LEFormat* le, RDAddress page_va, u32 page_idx,
                     name_off = b;
                 }
 
-                rd_reader_begin(r);
+                rd_reader_save(r);
                 const char* proc = le_import_proc_name(le, r, name_off);
-                rd_reader_end(r);
+                rd_reader_restore(r);
 
                 current_target =
                     le_importslice_resolve(&le->imports, ctx, mod_idx, proc);
@@ -199,7 +199,7 @@ void le_fixup_apply(const LEFormat* le, RDAddress page_va, u32 page_idx,
                 }
                 else {
                     u8 b;
-                    rd_reader_read_u8(r, &b);
+                    rd_reader_read_byte(r, &b);
                     entry_ord = b;
                 }
 

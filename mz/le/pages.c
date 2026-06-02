@@ -17,7 +17,7 @@ bool le_read_page(RDReader* r, const LEFormat* le, LEPage* v) {
     }
     else {
         rd_reader_read(r, &v->le.page_num, sizeof(v->le.page_num));
-        rd_reader_read_u8(r, &v->le.flags);
+        rd_reader_read_byte(r, &v->le.flags);
     }
 
     return !rd_reader_has_error(r);

@@ -79,8 +79,8 @@ void ne_load_relocs(NEFormat* ne, RDContext* ctx, u32 file_off, u16 seg_idx,
 
         u8 src_type, flags_and_target;
         u16 src_chain_offset;
-        rd_reader_read_u8(r, &src_type);
-        rd_reader_read_u8(r, &flags_and_target);
+        rd_reader_read_byte(r, &src_type);
+        rd_reader_read_byte(r, &flags_and_target);
         rd_reader_read_le16(r, &src_chain_offset);
         if(rd_reader_has_error(r)) return;
 
@@ -181,7 +181,7 @@ void ne_load_relocs(NEFormat* ne, RDContext* ctx, u32 file_off, u16 seg_idx,
                 rd_reader_seek(r, int_base + name_off);
 
                 u8 len;
-                rd_reader_read_u8(r, &len);
+                rd_reader_read_byte(r, &len);
                 if(rd_reader_has_error(r) || !len) break;
 
                 if(len + 1 > proc_name_len) {

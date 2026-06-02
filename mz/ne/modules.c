@@ -23,7 +23,7 @@ NEModuleSlice ne_moduleslice_create(NEFormat* ne, RDContext* ctx) {
         rd_reader_seek(r, int_base + name_off);
 
         u8 len;
-        rd_reader_read_u8(r, &len);
+        rd_reader_read_byte(r, &len);
         if(rd_reader_has_error(r) || !len) continue;
 
         char* name = rd_alloc(len + 1);

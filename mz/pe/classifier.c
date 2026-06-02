@@ -1,5 +1,4 @@
 #include "classifier.h"
-#include "pe/dirs/dotnet.h"
 #include "pe/dirs/imports.h"
 #include "pe/format.h"
 
@@ -44,9 +43,9 @@ static PEClassification _pe_classify_imports(const PEFormat* pe,
 
     PEImportDescriptor desc;
     while(pe_imports_read_descriptor(r, &desc)) {
-        rd_reader_begin(r);
+        rd_reader_save(r);
         const char* mod = pe_imports_get_descriptor_name(r, pe, &desc);
-        rd_reader_end(r);
+        rd_reader_restore(r);
 
         if(!mod) continue;
 

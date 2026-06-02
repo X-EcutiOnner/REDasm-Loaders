@@ -46,7 +46,7 @@ static void _pe_resource_read_dirs(RDContext* ctx, PEFormat* pe, RDReader* r,
         PEResourceDirectoryEntry entry;
         if(!_pe_resource_read_dir_entry(r, &entry)) break;
 
-        rd_reader_begin(r);
+        rd_reader_save(r);
         rd_library_type(ctx, entry_va, "PE_RESOURCE_DIRECTORY_ENTRY", 0,
                         RD_TYPE_NONE);
 
@@ -63,7 +63,7 @@ static void _pe_resource_read_dirs(RDContext* ctx, PEFormat* pe, RDReader* r,
             rd_reader_seek(r, dataentry_va);
             PEResourceDataEntry dataentry;
             if(!_pe_resource_read_data_entry(r, &dataentry)) {
-                rd_reader_end(r);
+                rd_reader_restore(r);
                 break;
             }
 
@@ -76,7 +76,7 @@ static void _pe_resource_read_dirs(RDContext* ctx, PEFormat* pe, RDReader* r,
             }
         }
 
-        entry_va = rd_reader_end(r);
+        entry_va = rd_reader_restore(r);
     }
 }
 

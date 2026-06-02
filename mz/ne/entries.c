@@ -20,8 +20,8 @@ NEEntrySlice ne_entryslice_create(NEFormat* ne, RDContext* ctx) {
         rd_reader_seek(r, pos);
 
         u8 count, seg_indicator;
-        rd_reader_read_u8(r, &count);
-        rd_reader_read_u8(r, &seg_indicator);
+        rd_reader_read_byte(r, &count);
+        rd_reader_read_byte(r, &seg_indicator);
         if(rd_reader_has_error(r)) break;
 
         pos += sizeof(u16);
@@ -42,9 +42,9 @@ NEEntrySlice ne_entryslice_create(NEFormat* ne, RDContext* ctx) {
                 // flags(1) + int3f(2) + segnum(1) + offset(2)
                 u8 flags, seg_num_byte;
                 u16 int3fh, offset;
-                rd_reader_read_u8(r, &flags);
+                rd_reader_read_byte(r, &flags);
                 rd_reader_read_le16(r, &int3fh);
-                rd_reader_read_u8(r, &seg_num_byte);
+                rd_reader_read_byte(r, &seg_num_byte);
                 rd_reader_read_le16(r, &offset);
                 if(rd_reader_has_error(r)) goto done;
 
@@ -60,7 +60,7 @@ NEEntrySlice ne_entryslice_create(NEFormat* ne, RDContext* ctx) {
                 // Fixed segment entry: flags(1) + offset(2)
                 u8 flags;
                 u16 offset;
-                rd_reader_read_u8(r, &flags);
+                rd_reader_read_byte(r, &flags);
                 rd_reader_read_le16(r, &offset);
                 if(rd_reader_has_error(r)) goto done;
 

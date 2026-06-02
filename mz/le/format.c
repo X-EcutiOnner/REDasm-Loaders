@@ -70,8 +70,8 @@ void le_report_os_type(const LEFormat* le) {
 }
 
 bool le_read_header(RDReader* r, LEHeader* v) {
-    rd_reader_read_u8(r, &v->byte_order);
-    rd_reader_read_u8(r, &v->word_order);
+    rd_reader_read_byte(r, &v->byte_order);
+    rd_reader_read_byte(r, &v->word_order);
     rd_reader_read_le32(r, &v->level);
     rd_reader_read_le16(r, &v->cpu_type);
     rd_reader_read_le16(r, &v->os_type);

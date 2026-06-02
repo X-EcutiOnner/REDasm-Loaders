@@ -12,8 +12,8 @@ static bool _le_read_vxd_ddb(RDReader* r, VxDDescBlock* v) {
     rd_reader_read_le32(r, &v->DDB_Next);
     rd_reader_read_le16(r, &v->DDB_SDK_Version);
     rd_reader_read_le16(r, &v->DDB_Req_Device_Number);
-    rd_reader_read_u8(r, &v->DDB_Dev_Major_Version);
-    rd_reader_read_u8(r, &v->DDB_Dev_Minor_Version);
+    rd_reader_read_byte(r, &v->DDB_Dev_Major_Version);
+    rd_reader_read_byte(r, &v->DDB_Dev_Minor_Version);
     rd_reader_read_le16(r, &v->DDB_Flags);
     rd_reader_read(r, &v->DDB_Name, sizeof(v->DDB_Name));
     rd_reader_read_le32(r, &v->DDB_Init_Order);

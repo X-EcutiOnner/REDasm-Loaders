@@ -134,9 +134,9 @@ static bool xbe_load(RDLoader* ldr, RDContext* ctx) {
 
         if(!shdr.VirtualAddress || !shdr.VirtualSize) continue;
 
-        rd_reader_begin(r);
+        rd_reader_save(r);
         const char* name = xbe_read_section_name(r, xbe, &shdr);
-        rd_reader_end(r);
+        rd_reader_restore(r);
 
         if(!rd_map_segment_n(ctx, name, shdr.VirtualAddress, shdr.VirtualSize,
                              xbe_segment_perm(&shdr)))

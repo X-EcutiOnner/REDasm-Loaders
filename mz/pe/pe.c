@@ -25,8 +25,8 @@ static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     if(rd_reader_has_error(req->input)) return false;
 
     rd_reader_read_le16(req->input, &pe->opt32.Magic);
-    rd_reader_read_u8(req->input, &pe->opt32.MajorLinkerVersion);
-    rd_reader_read_u8(req->input, &pe->opt32.MinorLinkerVersion);
+    rd_reader_read_byte(req->input, &pe->opt32.MajorLinkerVersion);
+    rd_reader_read_byte(req->input, &pe->opt32.MinorLinkerVersion);
     rd_reader_read_le32(req->input, &pe->opt32.SizeOfCode);
     rd_reader_read_le32(req->input, &pe->opt32.SizeOfInitializedData);
     rd_reader_read_le32(req->input, &pe->opt32.SizeOfUninitializedData);

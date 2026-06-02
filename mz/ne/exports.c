@@ -15,7 +15,7 @@ void ne_load_exports(NEFormat* ne, RDContext* ctx,
 
     while(true) {
         u8 len;
-        rd_reader_read_u8(r, &len);
+        rd_reader_read_byte(r, &len);
         if(rd_reader_has_error(r) || len == 0) break;
 
         if(len + 1 > name_len) {

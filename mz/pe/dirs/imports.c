@@ -151,7 +151,7 @@ bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
 
     PEImportDescriptor desc;
     while(pe_imports_read_descriptor(r, &desc)) {
-        rd_reader_begin(r);
+        rd_reader_save(r);
         rd_library_type(ctx, va, "PE_IMPORT_DESCRIPTOR", 0, RD_TYPE_NONE);
 
         RDAddress name_va;
@@ -183,7 +183,7 @@ bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
             rd_free(mod);
         }
 
-        va = rd_reader_end(r);
+        va = rd_reader_restore(r);
     }
 
     return true;

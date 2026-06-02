@@ -2,15 +2,15 @@
 #include <stdio.h>
 
 bool ne_read_header(RDReader* r, NEHeader* h) {
-    rd_reader_read_u8(r, &h->MajLinkerVersion);
-    rd_reader_read_u8(r, &h->MinLinkerVersion);
+    rd_reader_read_byte(r, &h->MajLinkerVersion);
+    rd_reader_read_byte(r, &h->MinLinkerVersion);
     rd_reader_read_le16(r, &h->EntryTableOffset);
     rd_reader_read_le16(r, &h->EntryTableLength);
     rd_reader_read_le32(r, &h->FileLoadCRC);
-    rd_reader_read_u8(r, &h->ProgramFlags);
-    rd_reader_read_u8(r, &h->AppFlags);
-    rd_reader_read_u8(r, &h->AutoDataSegIndex);
-    rd_reader_read_u8(r, &h->Reserved);
+    rd_reader_read_byte(r, &h->ProgramFlags);
+    rd_reader_read_byte(r, &h->AppFlags);
+    rd_reader_read_byte(r, &h->AutoDataSegIndex);
+    rd_reader_read_byte(r, &h->Reserved);
     rd_reader_read_le16(r, &h->InitHeapSize);
     rd_reader_read_le16(r, &h->InitStackSize);
     rd_reader_read_le32(r, &h->EntryPoint);
@@ -27,8 +27,8 @@ bool ne_read_header(RDReader* r, NEHeader* h) {
     rd_reader_read_le16(r, &h->MovableEntryCount);
     rd_reader_read_le16(r, &h->FileAlnSzShftCnt);
     rd_reader_read_le16(r, &h->ResTableCount);
-    rd_reader_read_u8(r, &h->TargetOS);
-    rd_reader_read_u8(r, &h->OS2EXEFlags);
+    rd_reader_read_byte(r, &h->TargetOS);
+    rd_reader_read_byte(r, &h->OS2EXEFlags);
     rd_reader_read_le16(r, &h->ReturnThunksOffset);
     rd_reader_read_le16(r, &h->SegRefThunksOffset);
     rd_reader_read_le16(r, &h->MinCodeSwapSize);

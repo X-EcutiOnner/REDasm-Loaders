@@ -111,9 +111,9 @@ static bool _le_object_map_pages(RDReader* r, const LEFormat* le,
             }
         }
 
-        rd_reader_begin(r);
+        rd_reader_save(r);
         le_fixup_apply(le, address, obj->mapidx - 1 + i, r, ctx);
-        rd_reader_end(r);
+        rd_reader_restore(r);
     }
 
     return true;
@@ -143,14 +143,14 @@ bool le_segments_load(LEFormat* le, RDContext* ctx) {
     u32 cursor = _le_unbound_base(le);
 
     // read all objects first...
-    rd_reader_begin(r);
+    rd_reader_save(r);
     for(u32 i = 0; i < le->header.num_objects; i++) {
         LEObject* obj = &le->objects.data[i];
         if(!_le_read_object(r, obj)) return false;
         obj->addr = cursor;
         cursor += rd_align_up(obj->size, LE_MEM_ALIGN);
     }
-    rd_reader_end(r);
+    rd_reader_restore(r);
 
     // ...and then load pages
     for(u32 i = 0; i < le->objects.length; i++) {
@@ -163,9 +163,9 @@ bool le_segments_load(LEFormat* le, RDContext* ctx) {
         const char* name = _le_object_name(obj, i + 1);
         rd_map_segment_n(ctx, name, obj->addr, size, perm);
 
-        rd_reader_begin(r);
+        rd_reader_save(r);
         _le_object_map_pages(r, le, obj, ctx);
-        rd_reader_end(r);
+        rd_reader_restore(r);
     }
 
     return !rd_reader_has_error(r);

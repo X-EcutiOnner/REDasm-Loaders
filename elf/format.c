@@ -4,7 +4,7 @@
 #include "header/header64.h"
 
 static bool _elf_read8(RDReader* r, u8* out) {
-    return rd_reader_read_u8(r, out);
+    return rd_reader_read_byte(r, out);
 }
 
 static bool _elf_read16(const ELFFormat* self, RDReader* r, u16* out) {
