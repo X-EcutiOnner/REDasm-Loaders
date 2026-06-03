@@ -154,7 +154,6 @@ bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
         rd_reader_save(r);
         rd_library_type(ctx, va, "PE_IMPORT_DESCRIPTOR", 0, RD_TYPE_NONE);
 
-        RDAddress name_va;
         char* mod = rd_strdup(pe_imports_get_descriptor_name(r, pe, &desc));
 
         if(mod) {
@@ -169,8 +168,11 @@ bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
 
             rd_free(import_stem);
 
-            rd_library_type(ctx, name_va, "char", strlen(mod) + 1,
-                            RD_TYPE_NONE);
+            RDAddress name_va;
+            if(pe_from_rva(pe, desc.Name, &name_va)) {
+                rd_library_type(ctx, name_va, "char", strlen(mod) + 1,
+                                RD_TYPE_NONE);
+            }
 
             RDAddress ft_va, oft_va;
             bool has_ft = pe_from_rva(pe, desc.FirstThunk, &ft_va);
