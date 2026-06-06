@@ -6,6 +6,7 @@
 #include "pe/dirs/exports.h"
 #include "pe/dirs/imports.h"
 #include "pe/dirs/resources.h"
+#include "pe/vb/decompiler.h"
 #include <string.h>
 
 static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
@@ -176,6 +177,16 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
         rd_set_entry_point(ctx, pe_norm(ctx, pe, ep), NULL);
 
     pe->classification = pe_classify(pe, ctx);
+
+    switch(pe->classification) {
+        case PE_CLASS_VISUAL_BASIC_5:
+        case PE_CLASS_VISUAL_BASIC_6:
+            rd_analyzer_enable(ctx, PE_VB_DECOMPILER_ID);
+            break;
+
+        default: break;
+    }
+
     pe_classify_print(pe->classification);
     return true;
 }

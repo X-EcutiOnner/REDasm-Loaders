@@ -1,5 +1,4 @@
 #include "decompiler.h"
-#include "pe/format.h"
 #include "pe/vb/components.h"
 #include "pe/vb/format.h"
 #include <string.h>
@@ -163,19 +162,6 @@ done:
     return !rd_reader_has_error(r);
 }
 
-static bool pe_vb_decompiler_is_enabled(RDContext* ctx,
-                                        const struct RDAnalyzerPlugin* plugin) {
-    RD_UNUSED(plugin);
-
-    const RDLoaderPlugin* lplugin = rd_get_loader_plugin(ctx);
-    if(strcmp(lplugin->id, PE_PLUGIN_ID) != 0) return false;
-
-    PEFormat* pe = (PEFormat*)rd_get_loader(ctx);
-
-    return pe && (pe->classification == PE_CLASS_VISUAL_BASIC_5 ||
-                  pe->classification == PE_CLASS_VISUAL_BASIC_6);
-}
-
 static void pe_vb_decompiler_execute(RDContext* ctx) {
     RDAddress ep;
     if(!rd_get_entry_point(ctx, &ep)) return;
@@ -260,10 +246,9 @@ static void pe_vb_decompiler_execute(RDContext* ctx) {
 
 const RDAnalyzerPlugin PE_VB_DECOMPILER = {
     .level = RD_API_LEVEL,
-    .id = "win_pe_vb",
+    .id = PE_VB_DECOMPILER_ID,
     .name = "Decompile VB5/6",
     .flags = RD_AF_SELECTED | RD_AF_RUNONCE,
     .order = 1000,
-    .is_enabled = pe_vb_decompiler_is_enabled,
     .execute = pe_vb_decompiler_execute,
 };
