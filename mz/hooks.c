@@ -7,7 +7,7 @@ static void _x86_read_com_string(RDContext* ctx, const RDInstruction* instr,
     usize count = 0;
     u8 b;
 
-    while(rd_read_u8(ctx, addr + count, &b) && b != term)
+    while(rd_read_byte(ctx, addr + count, &b) && b != term)
         count++;
 
     count++; // include terminator

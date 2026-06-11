@@ -46,7 +46,7 @@ static void _ne_patch_reloc(RDContext* ctx, u8 src_type, RDAddress from_addr,
 
         case NE_RELOC_SRC_LOBYTE:
             // Low byte of offset: rare, used by some data references.
-            rd_write_u8(ctx, from_addr, (u8)tgt_offset);
+            rd_write_byte(ctx, from_addr, (u8)tgt_offset);
             break;
 
         default: break;
