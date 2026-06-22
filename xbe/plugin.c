@@ -26,7 +26,7 @@ static void _xbe_read_kernel_thunks(const XBEFormat* xbe, RDContext* ctx) {
         if(!rd_read_le32(ctx, addr, &slot) || !slot) break;
 
         u32 ordinal = slot & 0x7FFFFFFFU;
-        rd_set_imported_ord(ctx, addr, "XBoxKernel", ordinal);
+        rd_set_external_ord(ctx, addr, "XBoxKernel", ordinal, RD_EXT_IMPORTED);
         addr += sizeof(u32);
     }
 }

@@ -91,20 +91,20 @@ static void _elf_process_sym(RDContext* ctx, const ELFFormat* elf, RDReader* r,
 
     if(type == ELF_STT_FUNC) {
         if(is_imported)
-            rd_set_imported(ctx, symaddr, NULL, name);
+            rd_set_external(ctx, symaddr, NULL, name, RD_EXT_IMPORTED);
         else
             rd_library_function(ctx, symaddr, name);
     }
     else if(type == ELF_STT_OBJECT) {
         if(is_imported)
-            rd_set_imported(ctx, symaddr, NULL, name);
+            rd_set_external(ctx, symaddr, NULL, name, RD_EXT_IMPORTED);
         else
             rd_library_name(ctx, symaddr, name);
     }
 
     // mark globals defined in this binary as exported
     if(!is_imported && bind == ELF_STB_GLOBAL)
-        rd_set_exported(ctx, symaddr, NULL);
+        rd_set_external(ctx, symaddr, NULL, NULL, RD_EXT_EXPORTED);
 }
 
 static void _elf_read_symtab(ELFFormat* elf, RDContext* ctx, RDReader* r,
@@ -168,7 +168,7 @@ static void _elf_read_relocs(ELFFormat* elf, RDContext* ctx, RDReader* r,
         const char* name = _elf_sym_name(r, &dynstr, sym.st_name);
         if(!name || !(*name)) continue;
 
-        rd_set_imported(ctx, r_offset, NULL, name);
+        rd_set_external(ctx, r_offset, NULL, name, RD_EXT_IMPORTED);
     }
 }
 

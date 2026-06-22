@@ -59,7 +59,7 @@ void le_load_vxd(const LEFormat* le, RDContext* ctx) {
     if(vxd.DDB_Control_Proc) {
         rd_library_function(ctx, vxd.DDB_Control_Proc,
                             rd_format("%s_Control", vxd_name));
-        rd_set_exported(ctx, vxd.DDB_Control_Proc, NULL);
+        rd_set_external(ctx, vxd.DDB_Control_Proc, NULL, NULL, RD_EXT_EXPORTED);
     }
 
     if(vxd.DDB_V86_API_Proc && vxd.DDB_V86_API_Proc == vxd.DDB_PM_API_Proc) {

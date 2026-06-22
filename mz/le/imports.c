@@ -59,7 +59,7 @@ RDAddress le_importslice_resolve(const LEImportSlice* self, RDContext* ctx,
     if(!mod_idx || mod_idx > (u16)self->length) return 0;
 
     const char* mod_name = self->names[mod_idx - 1];
-    const char* hint = rd_get_imported_hint(ctx, sym_name);
+    const char* hint = rd_get_external_hint(ctx, sym_name, RD_EXT_IMPORTED);
 
     // deduplication: already registered from a previous fixup
     RDAddress addr;
@@ -69,7 +69,7 @@ RDAddress le_importslice_resolve(const LEImportSlice* self, RDContext* ctx,
     addr = mod->base + mod->next_off;
     mod->next_off += sizeof(u32);
 
-    rd_set_imported(ctx, addr, mod_name, sym_name);
+    rd_set_external(ctx, addr, mod_name, sym_name, RD_EXT_IMPORTED);
     return addr;
 }
 
@@ -78,7 +78,8 @@ RDAddress le_importslice_resolve_ord(const LEImportSlice* self, RDContext* ctx,
     if(!mod_idx || mod_idx > (u16)self->length) return 0;
 
     const char* mod_name = self->names[mod_idx - 1];
-    const char* hint = rd_get_imported_ord_hint(ctx, mod_name, ordinal);
+    const char* hint =
+        rd_get_external_ord_hint(ctx, mod_name, ordinal, RD_EXT_IMPORTED);
 
     // deduplication: already registered from a previous fixup
     RDAddress addr;
@@ -88,7 +89,7 @@ RDAddress le_importslice_resolve_ord(const LEImportSlice* self, RDContext* ctx,
     addr = mod->base + mod->next_off;
     mod->next_off += sizeof(u32);
 
-    rd_set_imported_ord(ctx, addr, mod_name, ordinal);
+    rd_set_external_ord(ctx, addr, mod_name, ordinal, RD_EXT_IMPORTED);
     return addr;
 }
 

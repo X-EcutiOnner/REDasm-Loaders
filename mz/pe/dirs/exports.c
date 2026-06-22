@@ -127,7 +127,7 @@ bool pe_read_exports(RDContext* ctx, PEFormat* pe) {
         else
             rd_library_name(ctx, entry_va, name);
 
-        rd_set_exported(ctx, entry_va, name);
+        rd_set_external(ctx, entry_va, NULL, name, RD_EXT_EXPORTED);
     }
 
     return true;

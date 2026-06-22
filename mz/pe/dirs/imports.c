@@ -98,7 +98,7 @@ static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
             rd_library_name(ctx, thunkva + sizeof(u16),
                             rd_format("%s_%s_name", module, name));
 
-            rd_set_imported(ctx, ft_va, module, name);
+            rd_set_external(ctx, ft_va, module, name, RD_EXT_IMPORTED);
 
             if(oft_va != ft_va) {
                 rd_library_name(ctx, oft_va,
@@ -106,7 +106,8 @@ static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
             }
         }
         else
-            rd_set_imported_ord(ctx, ft_va, module, oft_thunk.ordinal);
+            rd_set_external_ord(ctx, ft_va, module, oft_thunk.ordinal,
+                                RD_EXT_IMPORTED);
 
         ft_va += pe->thunk_size;
         oft_va += pe->thunk_size;

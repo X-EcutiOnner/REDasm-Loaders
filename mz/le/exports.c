@@ -124,7 +124,7 @@ static void _le_read_name_table(const LEFormat* le, RDReader* r, u64 table_off,
         RDAddress addr = _le_entry_address(le, r, ordinal);
         rd_reader_restore(r);
 
-        if(addr) rd_set_exported(ctx, addr, name);
+        if(addr) rd_set_external(ctx, addr, NULL, name, RD_EXT_EXPORTED);
     }
 }
 

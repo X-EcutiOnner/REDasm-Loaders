@@ -49,7 +49,7 @@ void ne_load_exports(NEFormat* ne, RDContext* ctx,
         else
             rd_library_name(ctx, addr, name);
 
-        rd_set_exported(ctx, addr, name);
+        rd_set_external(ctx, addr, NULL, name, RD_EXT_EXPORTED);
     }
 
     rd_free(name);
