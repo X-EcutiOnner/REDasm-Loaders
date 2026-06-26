@@ -59,17 +59,17 @@ RDAddress le_importslice_resolve(const LEImportSlice* self, RDContext* ctx,
     if(!mod_idx || mod_idx > (u16)self->length) return 0;
 
     const char* mod_name = self->names[mod_idx - 1];
-    const char* hint = rd_get_external_hint(ctx, sym_name, RD_EXT_IMPORTED);
 
     // deduplication: already registered from a previous fixup
     RDAddress addr;
-    if(rd_get_address(ctx, hint, &addr)) return addr;
+    if(rd_get_address(ctx, sym_name, &addr)) return addr;
 
     LEImport* mod = &self->imports[mod_idx - 1]; // mod_idx is 1-based
     addr = mod->base + mod->next_off;
     mod->next_off += sizeof(u32);
 
-    rd_set_external(ctx, addr, mod_name, sym_name, RD_EXT_IMPORTED);
+    rd_set_external(ctx, addr, mod_name, RD_EXT_IMPORTED);
+    rd_library_name(ctx, addr, sym_name);
     return addr;
 }
 
@@ -78,15 +78,14 @@ RDAddress le_importslice_resolve_ord(const LEImportSlice* self, RDContext* ctx,
     if(!mod_idx || mod_idx > (u16)self->length) return 0;
 
     const char* mod_name = self->names[mod_idx - 1];
-    const char* hint =
-        rd_get_external_ord_hint(ctx, mod_name, ordinal, RD_EXT_IMPORTED);
 
     // deduplication: already registered from a previous fixup
-    RDAddress addr;
-    if(rd_get_address(ctx, hint, &addr)) return addr;
+    RDExternal ext;
+    if(rd_get_external_ord(ctx, mod_name, ordinal, RD_EXT_IMPORTED, &ext))
+        return ext.address;
 
     LEImport* mod = &self->imports[mod_idx - 1]; // mod_idx is 1-based
-    addr = mod->base + mod->next_off;
+    RDAddress addr = mod->base + mod->next_off;
     mod->next_off += sizeof(u32);
 
     rd_set_external_ord(ctx, addr, mod_name, ordinal, RD_EXT_IMPORTED);

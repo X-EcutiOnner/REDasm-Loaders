@@ -95,6 +95,7 @@ RDAddress ne_moduleslice_resolve_import(NEModuleSlice* self, RDContext* ctx,
     RDAddress addr = mod->base + off;
     mod->next_off += sizeof(u16);
 
-    rd_set_external(ctx, addr, NULL, sym_name, RD_EXT_IMPORTED);
+    rd_set_external(ctx, addr, NULL, RD_EXT_IMPORTED);
+    rd_library_name(ctx, addr, sym_name);
     return addr;
 }

@@ -98,7 +98,8 @@ static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
             rd_library_name(ctx, thunkva + sizeof(u16),
                             rd_format("%s_%s_name", module, name));
 
-            rd_set_external(ctx, ft_va, module, name, RD_EXT_IMPORTED);
+            rd_set_external(ctx, ft_va, module, RD_EXT_IMPORTED);
+            rd_library_name(ctx, ft_va, name);
 
             if(oft_va != ft_va) {
                 rd_library_name(ctx, oft_va,

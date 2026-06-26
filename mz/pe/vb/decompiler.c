@@ -78,20 +78,14 @@ static void _pe_vb_decompiler_events(const PEVBPublicObjectDescriptor* descr,
     rd_library_type(ctx, ctrlinfo->lpEventInfo, "PE_VB_EVENT_INFO", 0,
                     RD_TYPE_NONE);
 
-    if(evinfo.lpEVENT_SINK_QueryInterface) {
-        rd_library_function(ctx, evinfo.lpEVENT_SINK_QueryInterface,
-                            "EVENT_SINK_QueryInterface");
-    }
+    if(evinfo.lpEVENT_SINK_QueryInterface)
+        rd_library_function(ctx, evinfo.lpEVENT_SINK_QueryInterface, NULL);
 
-    if(evinfo.lpEVENT_SINK_AddRef) {
-        rd_library_function(ctx, evinfo.lpEVENT_SINK_AddRef,
-                            "EVENT_SINK_AddRef");
-    }
+    if(evinfo.lpEVENT_SINK_AddRef)
+        rd_library_function(ctx, evinfo.lpEVENT_SINK_AddRef, NULL);
 
-    if(evinfo.lpEVENT_SINK_Release) {
-        rd_library_function(ctx, evinfo.lpEVENT_SINK_Release,
-                            "EVENT_SINK_Release");
-    }
+    if(evinfo.lpEVENT_SINK_Release)
+        rd_library_function(ctx, evinfo.lpEVENT_SINK_Release, NULL);
 
     const RDKBObject* events = rd_kbobject_get_array(c, "events");
 
