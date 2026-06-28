@@ -34,9 +34,6 @@ target_sources(${PROJECT_NAME}
         pe/dirs/exports.c
         pe/dirs/imports.c
         pe/dirs/resources.c
-        pe/vb/components.c
-        pe/vb/decompiler.c
-        pe/vb/format.c
         pe/classifier.c
         pe/format.c
         pe/pe.c

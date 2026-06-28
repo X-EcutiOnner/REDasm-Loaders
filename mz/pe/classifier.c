@@ -18,6 +18,24 @@ static const char* const PE_CLASSIFY_STRING[] = {
     [PE_CLASS_VISUAL_STUDIO_2013] = "Visual Studio 2013",
     [PE_CLASS_VISUAL_STUDIO_2015] = "Visual Studio 2015",
     [PE_CLASS_VISUAL_STUDIO_2017] = "Visual Studio 2017",
+    [PE_CLASS_MFC_4_X] = "Visual C++ 4.x or 6 (MFC 4.x)",
+    [PE_CLASS_MFC_7] = "Visual C++ 2002 (MFC 7)",
+    [PE_CLASS_MFC_7_1] = "Visual C++ 2003 (MFC 7.1)",
+    [PE_CLASS_MFC_8] = "Visual C++ 2005 (MFC 8)",
+    [PE_CLASS_MFC_9] = "Visual C++ 2008 (MFC 9)",
+    [PE_CLASS_MFC_10] = "Visual C++ 2010 (MFC 10)",
+    [PE_CLASS_MFC_11] = "Visual C++ 2012 (MFC 11)",
+    [PE_CLASS_MFC_12] = "Visual C++ 2013 (MFC 12)",
+    [PE_CLASS_MFC_14] = "Visual C++ >= 2015 (MFC 14)",
+    [PE_CLASS_MFC_4_X_UNICODE] = "Visual C++ 4.x or 6 (MFC 4.x, Unicode)",
+    [PE_CLASS_MFC_7_UNICODE] = "Visual C++ 2002 (MFC 7, Unicode)",
+    [PE_CLASS_MFC_7_1_UNICODE] = "Visual C++ 2003 (MFC 7.1, Unicode)",
+    [PE_CLASS_MFC_8_UNICODE] = "Visual C++ 2005 (MFC 8, Unicode)",
+    [PE_CLASS_MFC_9_UNICODE] = "Visual C++ 2008 (MFC 9, Unicode)",
+    [PE_CLASS_MFC_10_UNICODE] = "Visual C++ 2010 (MFC 10, Unicode)",
+    [PE_CLASS_MFC_11_UNICODE] = "Visual C++ 2012 (MFC 11, Unicode)",
+    [PE_CLASS_MFC_12_UNICODE] = "Visual C++ 2013 (MFC 12, Unicode)",
+    [PE_CLASS_MFC_14_UNICODE] = "Visual C++ >= 2015 (MFC 14, Unicode)",
     [PE_CLASS_DOTNET_1] = ".NET 1.x",
     [PE_CLASS_DOTNET_2_X] = ".NET >= 2.x",
     [PE_CLASS_BORLAND_DELPHI] = "Borland Delphi",
@@ -54,6 +72,33 @@ static PEClassification _pe_classify_imports(const PEFormat* pe,
 
         if(rd_stristr(mod, "libstdc++") == mod) return PE_CLASS_MINGW;
 
+        if(!rd_stricmp(mod, "mfc40.dll")) return PE_CLASS_MFC_4_X;
+        if(!rd_stricmp(mod, "mfc40u.dll")) return PE_CLASS_MFC_4_X_UNICODE;
+
+        if(!rd_stricmp(mod, "mfc70.dll")) return PE_CLASS_MFC_7;
+        if(!rd_stricmp(mod, "mfc70u.dll")) return PE_CLASS_MFC_7_UNICODE;
+
+        if(!rd_stricmp(mod, "mfc71.dll")) return PE_CLASS_MFC_7_1;
+        if(!rd_stricmp(mod, "mfc71u.dll")) return PE_CLASS_MFC_7_1_UNICODE;
+
+        if(!rd_stricmp(mod, "mfc80.dll")) return PE_CLASS_MFC_8;
+        if(!rd_stricmp(mod, "mfc80u.dll")) return PE_CLASS_MFC_8_UNICODE;
+
+        if(!rd_stricmp(mod, "mfc90.dll")) return PE_CLASS_MFC_9;
+        if(!rd_stricmp(mod, "mfc90u.dll")) return PE_CLASS_MFC_9_UNICODE;
+
+        if(!rd_stricmp(mod, "mfc100.dll")) return PE_CLASS_MFC_10;
+        if(!rd_stricmp(mod, "mfc100u.dll")) return PE_CLASS_MFC_10_UNICODE;
+
+        if(!rd_stricmp(mod, "mfc110.dll")) return PE_CLASS_MFC_11;
+        if(!rd_stricmp(mod, "mfc110u.dll")) return PE_CLASS_MFC_11_UNICODE;
+
+        if(!rd_stricmp(mod, "mfc120.dll")) return PE_CLASS_MFC_12;
+        if(!rd_stricmp(mod, "mfc120u.dll")) return PE_CLASS_MFC_12_UNICODE;
+
+        if(!rd_stricmp(mod, "mfc140.dll")) return PE_CLASS_MFC_14;
+        if(!rd_stricmp(mod, "mfc140u.dll")) return PE_CLASS_MFC_14_UNICODE;
+
         if(!rd_stricmp(mod, "msvcp40.dll")) return PE_CLASS_VISUAL_STUDIO_4;
         if(!rd_stricmp(mod, "msvcp50.dll")) return PE_CLASS_VISUAL_STUDIO_5;
 
@@ -82,6 +127,7 @@ static PEClassification _pe_classify_imports(const PEFormat* pe,
             return PE_CLASS_VISUAL_STUDIO_2013;
 
         if(!rd_stricmp(mod, "msvcp140.dll") ||
+           !rd_stricmp(mod, "msvcp140d.dll") ||
            !rd_stricmp(mod, "vcruntime140.dll"))
             return PE_CLASS_VISUAL_STUDIO_2015;
 

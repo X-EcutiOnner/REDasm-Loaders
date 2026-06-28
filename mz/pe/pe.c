@@ -6,7 +6,7 @@
 #include "pe/dirs/exports.h"
 #include "pe/dirs/imports.h"
 #include "pe/dirs/resources.h"
-#include "pe/vb/decompiler.h"
+#include <inttypes.h>
 #include <string.h>
 
 static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
@@ -176,16 +176,18 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     if(pe_from_rva(pe, pe->entrypoint, &ep))
         rd_set_entry_point(ctx, pe_norm(ctx, pe, ep), NULL);
 
+    rd_log(RD_LOG_INFO, PE_PLUGIN_ID, "Image Base: %" PRIx64, pe->imagebase);
+
     pe->classification = pe_classify(pe, ctx);
 
-    switch(pe->classification) {
-        case PE_CLASS_VISUAL_BASIC_5:
-        case PE_CLASS_VISUAL_BASIC_6:
-            rd_analyzer_enable(ctx, PE_VB_DECOMPILER_ID);
-            break;
+    if(pe_classification_is_visual_basic(pe->classification))
+        rd_analyzer_enable(ctx, "compiler_vb");
+    else if(pe_classification_is_visual_studio(pe->classification) ||
+            pe_classification_is_mfc(pe->classification))
+        rd_analyzer_enable(ctx, "compiler_rtti_msvc");
 
-        default: break;
-    }
+    if(pe_classification_is_unicode(pe->classification))
+        rd_set_scan_char16(ctx, true);
 
     pe_classify_print(pe->classification);
     return true;

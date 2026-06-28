@@ -58,9 +58,6 @@ static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
                             RDAddress ft_va) {
     rd_reader_seek(r, ft_va);
 
-    // VB uses wide strings
-    if(rd_stristr(module, "msvbvm") == module) rd_set_scan_char16(ctx, true);
-
     while(true) {
         PEThunk oft_thunk, ft_thunk;
         if(!_pe_read_thunk(oft_va, r, pe, &oft_thunk)) break;

@@ -36,7 +36,9 @@ bool pe_read_exceptions(RDContext* ctx, PEFormat* pe) {
         if(!pe_from_rva(pe, entry.BeginAddress, &func_va)) continue;
 
         func_va = pe_norm(ctx, pe, func_va);
-        rd_library_function(ctx, func_va, rd_format("exc_%" PRIx64, func_va));
+
+        rd_placeholder_function(ctx, func_va,
+                                rd_format("exc_%" PRIx64, func_va));
     }
 
     return true;
