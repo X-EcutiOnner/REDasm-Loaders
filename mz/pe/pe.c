@@ -111,6 +111,7 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
 
     PEFormat* pe = (PEFormat*)ldr;
     pe_set_bits(pe);
+    pe_parse_richheader(ctx, pe);
 
     for(u16 i = 0; i < pe->fileheader.NumberOfSections; i++) {
         PESectionHeader* s = &pe->sections[i];
@@ -180,16 +181,38 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
 
     pe->classification = pe_classify(pe, ctx);
 
-    if(pe_classification_is_visual_basic(pe->classification))
-        rd_analyzer_enable(ctx, "compiler_vb");
-    else if(pe_classification_is_visual_studio(pe->classification) ||
-            pe_classification_is_mfc(pe->classification))
-        rd_analyzer_enable(ctx, "compiler_rtti_msvc");
+    switch(pe->classification.kind) {
+        case PE_CLASS_VISUAL_BASIC_5:
+        case PE_CLASS_VISUAL_BASIC_6:
+            rd_analyzer_enable(ctx, "compiler_vb");
+            break;
 
-    if(pe_classification_is_unicode(pe->classification))
-        rd_set_scan_char16(ctx, true);
+        case PE_CLASS_VISUAL_STUDIO:
+            rd_analyzer_enable(ctx, "compiler_rtti_msvc");
+            break;
 
-    pe_classify_print(pe->classification);
+        default: break;
+    }
+
+    if(pe->classification.is_unicode) rd_set_scan_char16(ctx, true);
+
+    pe_classify_print(&pe->classification);
+
+    switch(pe->rich_header.status) {
+        case PE_RICH_OK:
+            rd_log(RD_LOG_INFO, PE_PLUGIN_ID, "Rich Header: valid, %zu records",
+                   pe->rich_header.length);
+            break;
+        case PE_RICH_ABSENT:
+            rd_log(RD_LOG_INFO, PE_PLUGIN_ID, "Rich Header: absent");
+            break;
+        case PE_RICH_CORRUPTED:
+            rd_log(RD_LOG_WARN, PE_PLUGIN_ID,
+                   "Rich Header: present but checksum mismatch (possibly "
+                   "modified)");
+            break;
+    }
+
     return true;
 }
 
@@ -200,6 +223,10 @@ static RDLoader* pe_create(const RDLoaderPlugin* plugin) {
 
 static void pe_destroy(RDLoader* ldr) {
     PEFormat* pe = (PEFormat*)ldr;
+
+    rd_free(pe->rich_header.data);
+    pe->rich_header.length = 0;
+
     rd_free(pe->sections);
     rd_free(ldr);
 }

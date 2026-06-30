@@ -37,6 +37,7 @@ target_sources(${PROJECT_NAME}
         pe/classifier.c
         pe/format.c
         pe/pe.c
+        pe/rich.c
         hooks.c
         plugin.c
 )

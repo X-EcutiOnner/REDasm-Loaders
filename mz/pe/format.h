@@ -3,6 +3,7 @@
 #include "common/common.h"
 #include "header.h"
 #include "pe/classifier.h"
+#include "pe/rich.h"
 
 #define PE_PLUGIN_ID "win_pe"
 
@@ -21,6 +22,13 @@ typedef struct PEFormat {
 
     PESectionHeader* sections;
     PEDataDirectory data_dirs[PE_NUMBER_OF_DIRECTORY_ENTRIES];
+
+    struct {
+        PERichRecord* data;
+        usize length;
+        u32 checksum;
+        PERichStatus status;
+    } rich_header;
 
     PEClassification classification;
     const char* thunk_type;
