@@ -9,7 +9,7 @@ static bool _pe_read_runtime_function_entry(RDReader* r,
     return !rd_reader_has_error(r);
 }
 
-bool pe_read_exceptions(RDContext* ctx, PEFormat* pe) {
+bool pe_read_exceptions_dir(RDContext* ctx, PEFormat* pe) {
     // exception directory is only present on x64 (and Itanium)
     if(pe->bits != 64) return false;
 

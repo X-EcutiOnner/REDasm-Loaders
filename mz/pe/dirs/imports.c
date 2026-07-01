@@ -139,7 +139,7 @@ bool pe_imports_read_descriptor(RDReader* r, PEImportDescriptor* desc) {
     return desc->Name && (desc->OriginalFirstThunk || desc->FirstThunk);
 }
 
-bool pe_imports_read(RDContext* ctx, const PEFormat* pe) {
+bool pe_read_imports_dir(RDContext* ctx, const PEFormat* pe) {
     PEDataDirectory d = pe->data_dirs[PE_DIRECTORY_ENTRY_IMPORT];
 
     RDAddress va;

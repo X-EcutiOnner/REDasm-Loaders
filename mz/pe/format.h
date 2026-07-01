@@ -41,3 +41,4 @@ bool pe_from_rva(const PEFormat* pe, RDAddress rva, RDAddress* va);
 void pe_set_bits(PEFormat* pe);
 bool pe_read_section_header(RDReader* r, PESectionHeader* s);
 RDAddress pe_norm(RDContext* ctx, const PEFormat* pe, RDAddress address);
+const char* pe_get_processor(const RDLoader* ldr);

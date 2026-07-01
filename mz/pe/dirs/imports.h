@@ -18,7 +18,7 @@ typedef struct PEImportByName {
 typedef u32 PEThunkData32;
 typedef u64 PEThunkData64;
 
-bool pe_imports_read(RDContext* ctx, const PEFormat* pe);
+bool pe_read_imports_dir(RDContext* ctx, const PEFormat* pe);
 bool pe_imports_read_descriptor(RDReader* r, PEImportDescriptor* desc);
 const char* pe_imports_get_descriptor_name(RDReader* r, const PEFormat* pe,
                                            const PEImportDescriptor* desc);

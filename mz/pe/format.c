@@ -63,3 +63,21 @@ RDAddress pe_norm(RDContext* ctx, const PEFormat* pe, RDAddress address) {
 
     return address;
 }
+
+const char* pe_get_processor(const RDLoader* ldr) {
+    const PEFormat* pe = (const PEFormat*)ldr;
+
+    switch(pe->fileheader.Machine) {
+        case PE_FILE_MACHINE_ARM:
+        case PE_FILE_MACHINE_ARMNT: {
+            if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) return "arm64_le";
+            return "arm32_le";
+        }
+
+        case PE_FILE_MACHINE_AMD64: return "x86_64";
+        case PE_FILE_MACHINE_I386: return "x86_32";
+        default: break;
+    }
+
+    return NULL;
+}

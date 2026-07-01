@@ -16,4 +16,4 @@ typedef struct PEExportDirectory {
     u32 AddressOfNameOrdinals;
 } PEExportDirectory;
 
-bool pe_read_exports(RDContext* ctx, PEFormat* pe);
+bool pe_read_exports_dir(RDContext* ctx, PEFormat* pe);

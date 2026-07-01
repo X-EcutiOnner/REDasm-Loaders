@@ -28,6 +28,7 @@ target_sources(${PROJECT_NAME}
         ne/modules.c
         ne/ne.c
         ne/relocs.c
+        pe/dirs/config.c
         pe/dirs/debug.c
         pe/dirs/dotnet.c
         pe/dirs/exceptions.c

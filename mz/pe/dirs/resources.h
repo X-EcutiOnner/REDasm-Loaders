@@ -23,4 +23,4 @@ typedef struct PEResourceDataEntry {
     u32 Reserved;
 } PEResourceDataEntry;
 
-bool pe_resources_read(RDContext* ctx, PEFormat* pe);
+bool pe_read_resources_dir(RDContext* ctx, PEFormat* pe);

@@ -1,5 +1,6 @@
 #include "pe.h"
 #include "format.h"
+#include "pe/dirs/config.h"
 #include "pe/dirs/debug.h"
 #include "pe/dirs/dotnet.h"
 #include "pe/dirs/exceptions.h"
@@ -157,11 +158,12 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
         return false;
     }
 
-    pe_read_exports(ctx, pe);
-    pe_imports_read(ctx, pe);
-    pe_resources_read(ctx, pe);
-    pe_read_exceptions(ctx, pe);
-    pe_read_debug(ctx, pe);
+    pe_read_exports_dir(ctx, pe);
+    pe_read_imports_dir(ctx, pe);
+    pe_read_resources_dir(ctx, pe);
+    pe_read_exceptions_dir(ctx, pe);
+    pe_read_debug_dir(ctx, pe);
+    pe_read_config_dir(ctx, pe);
 
     if(pe->fileheader.PointerToSymbolTable && pe->fileheader.NumberOfSymbols) {
         const RDCommandValue COFF_ARGS[] = {
@@ -243,24 +245,6 @@ static const char* pe_get_name(const RDLoader* ldr) {
     }
 
     return rd_format("Portable Executable (%s)", pe_kind);
-}
-
-static const char* pe_get_processor(const RDLoader* ldr) {
-    const PEFormat* pe = (const PEFormat*)ldr;
-
-    switch(pe->fileheader.Machine) {
-        case PE_FILE_MACHINE_ARM:
-        case PE_FILE_MACHINE_ARMNT: {
-            if(pe->opt32.Magic == PE_NT_OPTIONAL_HDR64_MAGIC) return "arm64_le";
-            return "arm32_le";
-        }
-
-        case PE_FILE_MACHINE_AMD64: return "x86_64";
-        case PE_FILE_MACHINE_I386: return "x86_32";
-        default: break;
-    }
-
-    return NULL;
 }
 
 const RDLoaderPlugin PE_LOADER = {

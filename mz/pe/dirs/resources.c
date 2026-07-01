@@ -80,7 +80,7 @@ static void _pe_resource_read_dirs(RDContext* ctx, PEFormat* pe, RDReader* r,
     }
 }
 
-bool pe_resources_read(RDContext* ctx, PEFormat* pe) {
+bool pe_read_resources_dir(RDContext* ctx, PEFormat* pe) {
     PEDataDirectory d = pe->data_dirs[PE_DIRECTORY_ENTRY_RESOURCE];
 
     RDAddress va;
