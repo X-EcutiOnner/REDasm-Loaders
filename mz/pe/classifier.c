@@ -115,6 +115,8 @@ static void _pe_classify_imports(PEClassification* c, const PEFormat* pe,
 }
 
 static void _pe_classify_rich(PEClassification* c, const PEFormat* pe) {
+    if(pe->rich_header.status != PE_RICH_OK) return;
+
     for(usize i = 0; i < pe->rich_header.length; i++) {
         u16 prod_id = PE_RICH_PRODID(pe->rich_header.data[i].comp_id);
 
