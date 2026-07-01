@@ -120,9 +120,21 @@ static void _pe_classify_rich(PEClassification* c, const PEFormat* pe) {
     for(usize i = 0; i < pe->rich_header.length; i++) {
         u16 prod_id = PE_RICH_PRODID(pe->rich_header.data[i].comp_id);
 
-        if(prod_id == PE_RICH_PRODID_CPP) {
-            c->kind = PE_CLASS_VISUAL_STUDIO;
-            break;
+        switch(prod_id) {
+            case PE_RICH_PRODID_1310P_CPP:
+            case PE_RICH_PRODID_1310_CPP:
+            case PE_RICH_PRODID_1400_CPP:
+            case PE_RICH_PRODID_1500_CPP:
+            case PE_RICH_PRODID_1600_CPP:
+            case PE_RICH_PRODID_1610_CPP:
+            case PE_RICH_PRODID_1700_CPP:
+            case PE_RICH_PRODID_1800_CPP:
+            case PE_RICH_PRODID_1810_CPP:
+            case PE_RICH_PRODID_1900_CPP:
+                c->kind = PE_CLASS_VISUAL_STUDIO;
+                return;
+
+            default: break;
         }
     }
 }
