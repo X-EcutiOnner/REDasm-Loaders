@@ -105,8 +105,8 @@ static bool _le_object_map_pages(RDReader* r, const LEFormat* le,
             case LE_PAGE_ZEROED: rd_fill(ctx, address, size); break;
 
             default: {
-                rd_log(RD_LOG_WARN, LE_PLUGIN_ID, "unhandled page type: %04x",
-                       flags);
+                rd_log(RD_LOGLEVEL_WARN, LE_PLUGIN_ID,
+                       "unhandled page type: %04x", flags);
                 break;
             }
         }

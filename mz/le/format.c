@@ -8,35 +8,40 @@ RDAddress le_seg_address(const LEFormat* le, u32 obj_idx, u32 offset) {
 
 void le_report_module_type(const LEFormat* le) {
     if((le->header.flags & LE_MOD_VDD) == LE_MOD_VDD) {
-        rd_log(RD_LOG_INFO, LE_PLUGIN_ID,
+        rd_log(RD_LOGLEVEL_INFO, LE_PLUGIN_ID,
                "Module Type: Virtual Device Driver (VxD)");
     }
     else if((le->header.flags & LE_MOD_PDD) == LE_MOD_PDD) {
-        rd_log(RD_LOG_INFO, LE_PLUGIN_ID,
+        rd_log(RD_LOGLEVEL_INFO, LE_PLUGIN_ID,
                "Module Type: Physical Device Driver");
     }
     else if(le->header.flags & LE_MOD_DLL)
-        rd_log(RD_LOG_INFO, LE_PLUGIN_ID, "Module Type: Dynamic module (DLL)");
+        rd_log(RD_LOGLEVEL_INFO, LE_PLUGIN_ID,
+               "Module Type: Dynamic module (DLL)");
     else
-        rd_log(RD_LOG_INFO, LE_PLUGIN_ID, "Module Type: Program module (EXE)");
+        rd_log(RD_LOGLEVEL_INFO, LE_PLUGIN_ID,
+               "Module Type: Program module (EXE)");
 }
 
 void le_report_cpu_type(const LEFormat* le) {
     switch(le->header.cpu_type) {
         case LE_MOD_CPU_80286:
-            rd_log(RD_LOG_INFO, LE_PLUGIN_ID, "CPU Type: 80286 or greater");
+            rd_log(RD_LOGLEVEL_INFO, LE_PLUGIN_ID,
+                   "CPU Type: 80286 or greater");
             break;
 
         case LE_MOD_CPU_80386:
-            rd_log(RD_LOG_INFO, LE_PLUGIN_ID, "CPU Type: 80386 or greater");
+            rd_log(RD_LOGLEVEL_INFO, LE_PLUGIN_ID,
+                   "CPU Type: 80386 or greater");
             break;
 
         case LE_MOD_CPU_80486:
-            rd_log(RD_LOG_INFO, LE_PLUGIN_ID, "CPU Type: 80486 or greater");
+            rd_log(RD_LOGLEVEL_INFO, LE_PLUGIN_ID,
+                   "CPU Type: 80486 or greater");
             break;
 
         default: {
-            rd_log(RD_LOG_WARN, LE_PLUGIN_ID, "CPU Type: Unknown %" PRIu16,
+            rd_log(RD_LOGLEVEL_WARN, LE_PLUGIN_ID, "CPU Type: Unknown %" PRIu16,
                    le->header.cpu_type);
             break;
         }
@@ -46,23 +51,23 @@ void le_report_cpu_type(const LEFormat* le) {
 void le_report_os_type(const LEFormat* le) {
     switch(le->header.os_type) {
         case LE_MOD_OS_OS2:
-            rd_log(RD_LOG_INFO, LE_PLUGIN_ID, "OS: OS/2 required");
+            rd_log(RD_LOGLEVEL_INFO, LE_PLUGIN_ID, "OS: OS/2 required");
             break;
 
         case LE_MOD_OS_WIN:
-            rd_log(RD_LOG_INFO, LE_PLUGIN_ID, "OS: Windows required");
+            rd_log(RD_LOGLEVEL_INFO, LE_PLUGIN_ID, "OS: Windows required");
             break;
 
         case LE_MOD_OS_DOS:
-            rd_log(RD_LOG_INFO, LE_PLUGIN_ID, "OS: DOS required");
+            rd_log(RD_LOGLEVEL_INFO, LE_PLUGIN_ID, "OS: DOS required");
             break;
 
         case LE_MOD_OS_WIN386:
-            rd_log(RD_LOG_INFO, LE_PLUGIN_ID, "OS: Windows 386 required");
+            rd_log(RD_LOGLEVEL_INFO, LE_PLUGIN_ID, "OS: Windows 386 required");
             break;
 
         default: {
-            rd_log(RD_LOG_WARN, LE_PLUGIN_ID, "OS: Unknown %d",
+            rd_log(RD_LOGLEVEL_WARN, LE_PLUGIN_ID, "OS: Unknown %d",
                    (int)le->header.os_type);
             break;
         }

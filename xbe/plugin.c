@@ -39,7 +39,7 @@ static void _xbe_display_certificate(const XBECertificate* cert) {
         title[i] = (char)(cert->TitleName[i] & 0xFF);
     }
 
-    rd_log(RD_LOG_INFO, XBE_PLUGIN_ID, "Title: %s", title);
+    rd_log(RD_LOGLEVEL_INFO, XBE_PLUGIN_ID, "Title: %s", title);
 
     char* regions = rd_alloc0(XBE_REGION_BUFFER_SIZE + 1, sizeof(char));
 
@@ -66,7 +66,7 @@ static void _xbe_display_certificate(const XBECertificate* cert) {
                 XBE_REGION_BUFFER_SIZE - strlen(regions) - 1);
     }
 
-    rd_log(RD_LOG_INFO, XBE_PLUGIN_ID, "Regions: %s", regions);
+    rd_log(RD_LOGLEVEL_INFO, XBE_PLUGIN_ID, "Regions: %s", regions);
 
     rd_free(regions);
     rd_free(title);

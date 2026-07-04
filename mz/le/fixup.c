@@ -47,7 +47,7 @@ static void _le_patch_fixup(RDContext* ctx, u8 type, RDAddress address,
 
         case LE_FIXUP_SOURCE_SEG:
         case LE_FIXUP_SOURCE_PTR_48: {
-            rd_log(RD_LOG_WARN, LE_PLUGIN_ID,
+            rd_log(RD_LOGLEVEL_WARN, LE_PLUGIN_ID,
                    "unhandled fixup source type 0x%02x at 0x%08x",
                    type & LE_FIXUP_SOURCE_MASK, (u32)address);
             break;
@@ -203,7 +203,7 @@ void le_fixup_apply(const LEFormat* le, RDAddress page_va, u32 page_idx,
                     entry_ord = b;
                 }
 
-                rd_log(RD_LOG_WARN, LE_PLUGIN_ID,
+                rd_log(RD_LOGLEVEL_WARN, LE_PLUGIN_ID,
                        "INT_VIA_ENTRY fixup (ordinal %u) not yet implemented",
                        entry_ord);
                 break;

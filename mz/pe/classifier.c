@@ -162,6 +162,6 @@ void pe_classify_print(const PEClassification* c) {
         return;
     }
 
-    rd_log(RD_LOG_INFO, PE_PLUGIN_ID, "detected %s",
+    rd_log(RD_LOGLEVEL_INFO, PE_PLUGIN_ID, "detected %s",
            PE_CLASSIFY_STRING[c->kind]);
 }

@@ -95,7 +95,7 @@ void pe_parse_richheader(RDContext* ctx, PEFormat* pe) {
         pe->rich_header.data[i].comp_id = s.buffer[pos] ^ s.key;
         pe->rich_header.data[i].count = s.buffer[pos + 1] ^ s.key;
 
-        // rd_log(RD_LOG_INFO, "PE_RICH", "(%08x, %08x) ProdId: %04x",
+        // rd_log(RD_RD_LOG_INFO, "PE_RICH", "(%08x, %08x) ProdId: %04x",
         //        pe->rich_header.data[i].comp_id,
         //        pe->rich_header.data[i].count,
         //        PE_RICH_PRODID(pe->rich_header.data[i].comp_id));
