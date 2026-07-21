@@ -5,8 +5,6 @@
 #include "pe/classifier.h"
 #include "pe/rich.h"
 
-#define PE_PLUGIN_ID "win_pe"
-
 typedef struct PEFormat {
     RDAddress imagebase;
     RDAddress entrypoint;

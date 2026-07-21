@@ -86,7 +86,7 @@ static const char* le_get_processor(const RDLoader* ldr) {
 
 const RDLoaderPlugin LE_LOADER = {
     .level = RD_API_LEVEL,
-    .id = LE_PLUGIN_ID,
+    .id = "mz_linear",
     .get_name = le_get_name,
     .get_processor = le_get_processor,
     .create = le_create,

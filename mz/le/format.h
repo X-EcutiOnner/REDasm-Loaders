@@ -8,7 +8,6 @@
 #include "le/objects.h"
 #include <redasm/redasm.h>
 
-#define LE_PLUGIN_ID "mz_linear"
 #define LE_SEG_SLOT 0x00010000U
 
 #define LE_BYTEORDER_BIG 0x01
@@ -31,7 +30,6 @@
 #define LE_MOD_OS_WIN 2
 #define LE_MOD_OS_DOS 3
 #define LE_MOD_OS_WIN386 4
-
 
 typedef struct LEHeader {
     u8 byte_order;

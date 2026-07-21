@@ -154,7 +154,7 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     }
 
     if(pe->dotnet_version > 0) {
-        rd_log(RD_LOGLEVEL_FAIL, PE_PLUGIN_ID, ".NET is not supported");
+        RD_LOG_FAIL(".NET is not supported");
         return false;
     }
 
@@ -179,9 +179,7 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     if(pe_from_rva(pe, pe->entrypoint, &ep))
         rd_set_entry_point(ctx, pe_norm(ctx, pe, ep), NULL);
 
-    rd_log(RD_LOGLEVEL_INFO, PE_PLUGIN_ID, "Image Base: %" PRIx64,
-           pe->imagebase);
-
+    RD_LOG_INFO("Image Base: %" PRIx64, pe->imagebase);
     pe->classification = pe_classify(pe, ctx);
 
     switch(pe->classification.kind) {
@@ -202,18 +200,19 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     pe_classify_print(&pe->classification);
 
     switch(pe->rich_header.status) {
-        case PE_RICH_OK:
-            rd_log(RD_LOGLEVEL_INFO, PE_PLUGIN_ID,
-                   "Rich Header: valid, %zu records", pe->rich_header.length);
+        case PE_RICH_OK: {
+            RD_LOG_INFO("Rich Header: valid, %zu records",
+                        pe->rich_header.length);
             break;
-        case PE_RICH_ABSENT:
-            rd_log(RD_LOGLEVEL_INFO, PE_PLUGIN_ID, "Rich Header: absent");
+        }
+
+        case PE_RICH_ABSENT: RD_LOG_INFO("Rich Header: absent"); break;
+
+        case PE_RICH_CORRUPTED: {
+            RD_LOG_INFO(
+                "Rich Header: present but checksum mismatch (modified?)");
             break;
-        case PE_RICH_CORRUPTED:
-            rd_log(RD_LOGLEVEL_WARN, PE_PLUGIN_ID,
-                   "Rich Header: present but checksum mismatch (possibly "
-                   "modified)");
-            break;
+        }
     }
 
     return true;
@@ -250,7 +249,7 @@ static const char* pe_get_name(const RDLoader* ldr) {
 
 const RDLoaderPlugin PE_LOADER = {
     .level = RD_API_LEVEL,
-    .id = PE_PLUGIN_ID,
+    .id = "win_pe",
     .get_name = pe_get_name,
     .get_processor = pe_get_processor,
     .create = pe_create,
