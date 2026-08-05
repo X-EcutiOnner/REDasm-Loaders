@@ -57,23 +57,28 @@ void le_load_vxd(const LEFormat* le, RDContext* ctx) {
     }
 
     if(vxd.DDB_Control_Proc) {
-        rd_library_function(ctx, vxd.DDB_Control_Proc,
-                            rd_format("%s_Control", vxd_name));
+        rd_set_function(ctx, vxd.DDB_Control_Proc);
+        rd_library_name(ctx, vxd.DDB_Control_Proc,
+                        rd_format("%s_Control", vxd_name));
+
         rd_set_external(ctx, vxd.DDB_Control_Proc, NULL, RD_EXT_EXPORTED);
     }
 
     if(vxd.DDB_V86_API_Proc && vxd.DDB_V86_API_Proc == vxd.DDB_PM_API_Proc) {
-        rd_library_function(ctx, vxd.DDB_V86_API_Proc,
-                            rd_format("%s_V86_PM_API", vxd_name));
+        rd_set_function(ctx, vxd.DDB_V86_API_Proc);
+        rd_library_name(ctx, vxd.DDB_V86_API_Proc,
+                        rd_format("%s_V86_PM_API", vxd_name));
     }
     else {
         if(vxd.DDB_V86_API_Proc) {
-            rd_library_function(ctx, vxd.DDB_V86_API_Proc,
-                                rd_format("%s_V86_API", vxd_name));
+            rd_set_function(ctx, vxd.DDB_V86_API_Proc);
+            rd_library_name(ctx, vxd.DDB_V86_API_Proc,
+                            rd_format("%s_V86_API", vxd_name));
         }
         if(vxd.DDB_PM_API_Proc) {
-            rd_library_function(ctx, vxd.DDB_PM_API_Proc,
-                                rd_format("%s_PM_API", vxd_name));
+            rd_set_function(ctx, vxd.DDB_PM_API_Proc);
+            rd_library_name(ctx, vxd.DDB_PM_API_Proc,
+                            rd_format("%s_PM_API", vxd_name));
         }
     }
 
@@ -91,7 +96,7 @@ void le_load_vxd(const LEFormat* le, RDContext* ctx) {
 
             u32 svc_addr;
             if(rd_reader_read_le32(r, &svc_addr)) {
-                rd_library_function(ctx, (RDAddress)svc_addr, NULL);
+                rd_set_function(ctx, (RDAddress)svc_addr);
                 rd_auto_name(ctx, svc_addr,
                              rd_format("%s_service_%" PRIu32, vxd_name, i));
             }

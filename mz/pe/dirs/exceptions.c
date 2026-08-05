@@ -37,8 +37,8 @@ bool pe_read_exceptions_dir(RDContext* ctx, PEFormat* pe) {
 
         func_va = pe_norm(ctx, pe, func_va);
 
-        rd_placeholder_function(ctx, func_va,
-                                rd_format("exc_%" PRIx64, func_va));
+        rd_set_function(ctx, func_va);
+        rd_placeholder_name(ctx, func_va, rd_format("exc_%" PRIx64, func_va));
     }
 
     return true;

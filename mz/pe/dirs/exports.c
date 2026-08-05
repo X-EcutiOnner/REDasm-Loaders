@@ -144,7 +144,7 @@ bool pe_read_exports_dir(RDContext* ctx, PEFormat* pe) {
             }
         }
         else if(is_func)
-            rd_library_function(ctx, entry_va, NULL);
+            rd_set_function(ctx, entry_va);
 
         rd_reader_restore(r);
     }

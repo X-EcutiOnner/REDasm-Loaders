@@ -61,6 +61,8 @@ static void _elf_load_program(ELFFormat* elf, RDContext* ctx) {
         if(!rd_map_segment_n(ctx, name, phdr.p_vaddr, phdr.p_memsz, perm))
             continue;
 
+        RD_LOG_INFO(">>>>>>>> %s: %x", name, phdr.p_filesz);
+
         // p_filesz <= p_memsz always BSS tail has no file backing
         if(phdr.p_filesz > 0) {
             rd_map_input_n(ctx, phdr.p_offset, phdr.p_vaddr,
@@ -90,12 +92,12 @@ static void _elf_process_sym(RDContext* ctx, const ELFFormat* elf, RDReader* r,
     RDAddress symaddr = elf_norm(ctx, elf, (RDAddress)sym->st_value);
 
     if(type == ELF_STT_FUNC) {
-        if(is_imported) {
+        if(is_imported)
             rd_set_external(ctx, symaddr, NULL, RD_EXT_IMPORTED);
-            rd_library_name(ctx, symaddr, name);
-        }
         else
-            rd_library_function(ctx, symaddr, name);
+            rd_set_function(ctx, symaddr);
+
+        rd_library_name(ctx, symaddr, name);
     }
     else if(type == ELF_STT_OBJECT) {
         if(is_imported) rd_set_external(ctx, symaddr, NULL, RD_EXT_IMPORTED);

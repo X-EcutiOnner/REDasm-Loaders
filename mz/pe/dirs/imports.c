@@ -70,7 +70,7 @@ static void _pe_read_thunks(RDContext* ctx, const PEFormat* pe, RDReader* r,
         }
 
         rd_library_type(ctx, oft_va, pe->thunk_type, 0, RD_TYPE_PTR);
-        rd_library_type(ctx, ft_va, pe->thunk_type, 0, RD_TYPE_PTR);
+        rd_library_type(ctx, ft_va, "function", 0, RD_TYPE_NONE);
 
         if(!oft_thunk.is_ord) {
             RDAddress thunkva;

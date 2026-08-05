@@ -95,7 +95,7 @@ bool pe_read_config_dir(RDContext* ctx, PEFormat* pe) {
 
                 RDAddress va;
                 if(!pe_from_rva(pe, (RDAddress)rva, &va)) continue;
-                rd_library_function(ctx, va, NULL);
+                rd_set_function(ctx, va);
             }
         }
     }
@@ -120,7 +120,7 @@ bool pe_read_config_dir(RDContext* ctx, PEFormat* pe) {
 
                 RDAddress va;
                 if(!pe_from_rva(pe, (RDAddress)rva, &va)) continue;
-                rd_library_function(ctx, va, NULL);
+                rd_set_function(ctx, va);
             }
         }
     }
