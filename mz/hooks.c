@@ -72,31 +72,34 @@ static void _x86_emulate_dos_21h(RDContext* ctx, const RDInstruction* instr) {
     }
 }
 
-static void _x86_decode_dos_int_hook(RDContext* ctx, RDInstruction* instr) {
-    if(instr->operands[0].kind != RD_OP_CNST) return;
+static void _x86_dos_int_hook(RDContext* ctx, const RDHookEvent* e,
+                              void* userdata) {
+    RD_UNUSED(userdata);
 
-    switch(instr->operands[0].cnst) {
-        case 0x21: _x86_decode_dos_21h(ctx, instr); break;
-        case 0x20: // Terminate program
-        case 0x27: // Terminate and stay resident
-            instr->flow = RD_IF_STOP;
-            break;
+    if(e->kind == RD_HOOK_DECODE) {
+        if(e->decode.instr->operands[0].kind != RD_OP_CNST) return;
 
-        default: break;
+        switch(e->decode.instr->operands[0].cnst) {
+            case 0x21: _x86_decode_dos_21h(ctx, e->decode.instr); break;
+            case 0x20: // Terminate program
+            case 0x27: // Terminate and stay resident
+                e->decode.instr->flow = RD_IF_STOP;
+                break;
+
+            default: break;
+        }
     }
-}
+    else if(e->kind == RD_HOOK_EMULATE) {
+        if(e->emulate.instr->operands[0].kind != RD_OP_CNST) return;
 
-static void _x86_emulate_dos_int_hook(RDContext* ctx,
-                                      const RDInstruction* instr) {
-    if(instr->operands[0].kind != RD_OP_CNST) return;
-
-    switch(instr->operands[0].cnst) {
-        case 0x21: _x86_emulate_dos_21h(ctx, instr); break;
-        default: break;
+        switch(e->emulate.instr->operands[0].cnst) {
+            case 0x21: _x86_emulate_dos_21h(ctx, e->emulate.instr); break;
+            default: break;
+        }
     }
 }
 
 void mz_register_dos_hooks(RDContext* ctx) {
-    rd_register_decode_hook(ctx, "x86.int", _x86_decode_dos_int_hook);
-    rd_register_emulate_hook(ctx, "x86.int", _x86_emulate_dos_int_hook);
+    rd_register_hook(ctx, RD_HOOK_DECODE, "x86.int", _x86_dos_int_hook, NULL);
+    rd_register_hook(ctx, RD_HOOK_EMULATE, "x86.int", _x86_dos_int_hook, NULL);
 }

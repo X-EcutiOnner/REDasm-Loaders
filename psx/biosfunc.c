@@ -11,7 +11,11 @@ static const char* psx_bios_lookup(RDContext* ctx, u8 sel, u8 fn) {
     return rd_kbobject_get_str(kb, str);
 }
 
-void psx_bios_autorename_hook(RDContext* ctx) {
+void psx_bios_autorename_hook(RDContext* ctx, const RDHookEvent* e,
+                              void* userdata) {
+    RD_UNUSED(e);
+    RD_UNUSED(userdata);
+
     RDFunctionSlice functions = rd_get_all_functions(ctx);
     RDIL* rdil = rd_il_create(ctx, NULL);
 
