@@ -179,7 +179,7 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     if(pe_from_rva(pe, pe->entrypoint, &ep))
         rd_set_entry_point(ctx, pe_norm(ctx, pe, ep), NULL);
 
-    RD_LOG_INFO("Image Base: %" PRIx64, pe->imagebase);
+    RD_LOG_INFO("Image Base: %" PRIX64, pe->imagebase);
     pe->classification = pe_classify(pe, ctx);
 
     switch(pe->classification.kind) {
