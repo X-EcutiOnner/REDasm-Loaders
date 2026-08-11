@@ -16,6 +16,7 @@ add_subdirectory(elf)
 add_subdirectory(mz)
 add_subdirectory(psx)
 add_subdirectory(xbe)
+add_subdirectory(zxspectrum)
 
 get_property(subdirs DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" PROPERTY SUBDIRECTORIES)
 
