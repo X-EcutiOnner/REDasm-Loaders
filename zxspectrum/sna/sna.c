@@ -82,14 +82,15 @@ static bool _sna_load(RDLoader* ldr, RDContext* ctx) {
 
     usize ram_dump_len = sna->length - rd_reader_tell(r);
 
-    // map whole 64k Z80 address space
-    rd_map_segment_n(ctx, "RAM", 0, 0x10000, RD_SP_RWX);
+    rd_map_segment(ctx, "ROM", 0x0000, 0x4000, RD_SP_R);
+    rd_map_segment(ctx, "RAM", 0x4000, 0x10000, RD_SP_RWX);
     rd_map_input_n(ctx, rd_reader_tell(r), 0x4000, ram_dump_len);
 
     u16 ep;
     if(rd_read_le16(ctx, sna->header.sp, &ep))
         rd_set_entry_point(ctx, ep, NULL);
 
+    rd_kb_load(ctx, "os/zxspectrum/rom48k");
     return true;
 }
 
