@@ -65,6 +65,21 @@ static bool _sna_load(RDLoader* ldr, RDContext* ctx) {
     RDReader* r = rd_get_input_reader(ctx);
     if(!_sna_read_header(r, &sna->header)) return false;
 
+    // initialize registers
+    rd_set_regval(ctx, "i", sna->header.i);
+    rd_set_regval(ctx, "hl'", sna->header.hl_);
+    rd_set_regval(ctx, "de'", sna->header.de_);
+    rd_set_regval(ctx, "bc'", sna->header.bc_);
+    rd_set_regval(ctx, "af'", sna->header.af_);
+    rd_set_regval(ctx, "hl", sna->header.hl);
+    rd_set_regval(ctx, "de", sna->header.de);
+    rd_set_regval(ctx, "bc", sna->header.bc);
+    rd_set_regval(ctx, "iy", sna->header.iy);
+    rd_set_regval(ctx, "ix", sna->header.ix);
+    rd_set_regval(ctx, "r", sna->header.r);
+    rd_set_regval(ctx, "af", sna->header.af);
+    rd_set_regval(ctx, "sp", sna->header.sp);
+
     usize ram_dump_len = sna->length - rd_reader_tell(r);
 
     // map whole 64k Z80 address space
