@@ -47,6 +47,7 @@ bool sna_load_48k(RDContext* ctx, RDReader* r, const SNAFormat* sna) {
     if(rd_read_le16(ctx, sna->header.sp, &ep))
         rd_set_entry_point(ctx, ep, NULL);
 
+    rd_library_name(ctx, sna->header.sp, "stack");
     rd_kb_load(ctx, "os/zxspectrum/rom48k");
 
     if(ep < 0x4000) {
