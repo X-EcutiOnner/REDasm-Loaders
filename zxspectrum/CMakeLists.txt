@@ -11,6 +11,8 @@ add_library(${PROJECT_NAME} SHARED)
 target_sources(${PROJECT_NAME} 
     PRIVATE
         sna/sna.c
+        sna/sna_48k.c
+        sna/sna_format.c
         plugin.c
 )
 
