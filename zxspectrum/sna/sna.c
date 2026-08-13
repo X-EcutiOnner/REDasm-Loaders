@@ -4,28 +4,35 @@
 static bool _sna_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     if(rd_stricmp(req->ext, "sna") != 0) return false;
 
-    SNAFormat* sna = (SNAFormat*)ldr;
     usize len = rd_reader_get_length(req->input);
 
     switch(len) {
         case SNA_48K_SNAPSHOT:
         case SNA_128K_SNAPSHOT:
-        case SNA_128K_EXT_SNAPSHOT: sna->length = len; return true;
+        case SNA_128K_EXT_SNAPSHOT: break;
 
-        default: break;
+        default: return false;
     }
 
-    return false;
+    SNAFormat* sna = (SNAFormat*)ldr;
+    if(!sna_read_header(req->input, &sna->header)) return false;
+    if(sna->header.int_flag & ~0x04) return false;
+    if(sna->header.int_mode > 2) return false;
+
+    if(sna->header.border_color > 7 && sna->header.border_color != 0x71 &&
+       sna->header.border_color != 0xC9)
+        return false;
+
+    sna->length = len;
+    return true;
 }
 
 static bool _sna_load(RDLoader* ldr, RDContext* ctx) {
-    static const u8 STRING_TERMS[] = {0xFF};
+    static const u8 STRING_TERMS[] = {0xFF, 00};
     rd_set_string_terminators(ctx, STRING_TERMS, rd_count_of(STRING_TERMS));
 
     SNAFormat* sna = (SNAFormat*)ldr;
     RDReader* r = rd_get_input_reader(ctx);
-    if(!sna_read_header(r, &sna->header)) return false;
-
     sna_init_registers(ctx, sna);
 
     switch(sna->length) {
