@@ -24,6 +24,7 @@ static bool _sna_parse(RDLoader* ldr, const RDLoaderRequest* req) {
         return false;
 
     sna->length = len;
+    sna->ram_start = rd_reader_tell(req->input);
     sna->ram_length = len - rd_reader_tell(req->input);
     return true;
 }
@@ -37,7 +38,7 @@ static bool _sna_load(RDLoader* ldr, RDContext* ctx) {
     sna_init_registers(ctx, sna);
 
     switch(sna->length) {
-        case SNA_48K_SNAPSHOT: return sna_load_48k(ctx, r, sna);
+        case SNA_48K_SNAPSHOT: return sna_load_48k(ctx, sna);
         // case SNA_128K_SNAPSHOT: break;
         // case SNA_128K_EXT_SNAPSHOT: break;
         default: break;

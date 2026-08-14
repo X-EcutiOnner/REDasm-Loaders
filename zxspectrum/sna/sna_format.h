@@ -20,8 +20,10 @@ typedef struct SNAHeader {
 typedef struct SNAFormat {
     SNAHeader header;
     usize length;
+    usize ram_start;
+    usize ram_length;
 } SNAFormat;
 
 bool sna_read_header(RDReader* r, SNAHeader* v);
 void sna_init_registers(RDContext* ctx, const SNAFormat* sna);
-bool sna_load_48k(RDContext* ctx, RDReader* r, const SNAFormat* sna);
+bool sna_load_48k(RDContext* ctx, const SNAFormat* sna);

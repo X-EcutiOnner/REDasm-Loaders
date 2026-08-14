@@ -1,4 +1,5 @@
 #include "sna_format.h"
+#include "common.h"
 
 bool sna_read_header(RDReader* r, SNAHeader* v) {
     rd_reader_read_byte(r, &v->i);
@@ -36,25 +37,15 @@ void sna_init_registers(RDContext* ctx, const SNAFormat* sna) {
     rd_set_regval(ctx, "sp", sna->header.sp);
 }
 
-bool sna_load_48k(RDContext* ctx, RDReader* r, const SNAFormat* sna) {
-    usize ram_dump_len = sna->length - rd_reader_tell(r);
-
+bool sna_load_48k(RDContext* ctx, const SNAFormat* sna) {
     rd_map_segment(ctx, "ROM", 0x0000, 0x4000, RD_SP_R);
     rd_map_segment(ctx, "RAM", 0x4000, 0x10000, RD_SP_RWX);
-    rd_map_input_n(ctx, rd_reader_tell(r), 0x4000, ram_dump_len);
+    rd_map_input_n(ctx, sna->ram_start, 0x4000, sna->ram_length);
+    rd_library_name(ctx, sna->header.sp, "stack");
 
     u16 ep;
-    if(rd_read_le16(ctx, sna->header.sp, &ep))
-        rd_set_entry_point(ctx, ep, NULL);
+    if(rd_read_le16(ctx, sna->header.sp, &ep)) zx_set_entry_point(ctx, ep);
 
-    rd_library_name(ctx, sna->header.sp, "stack");
     rd_kb_load(ctx, "os/zxspectrum/rom48k");
-
-    if(ep < 0x4000) {
-        RD_LOG_WARN("entry point 0x%04x falls inside ROM, snapshot was "
-                    "captured mid-ROM execution, disassembly cannot start here",
-                    ep);
-    }
-
     return true;
 }
