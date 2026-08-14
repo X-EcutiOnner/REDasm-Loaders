@@ -24,6 +24,7 @@ static bool _sna_parse(RDLoader* ldr, const RDLoaderRequest* req) {
         return false;
 
     sna->length = len;
+    sna->ram_length = len - rd_reader_tell(req->input);
     return true;
 }
 
