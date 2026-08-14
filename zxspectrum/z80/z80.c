@@ -43,6 +43,8 @@ static bool _z80_load(RDLoader* ldr, RDContext* ctx) {
     Z80Format* z80 = (Z80Format*)ldr;
     RDReader* r = rd_get_input_reader(ctx);
 
+    z80_init_registers(ctx, z80);
+
     switch(z80->version) {
         case 1: return z80_load_v1(ctx, r, z80);
 

@@ -71,6 +71,7 @@ typedef struct Z80Format {
     int version;
 } Z80Format;
 
+void z80_init_registers(RDContext* ctx, const Z80Format* z80);
 bool z80_read_header_base(RDReader* r, Z80HeaderBase* v);
 bool z80_read_header_ext(RDReader* r, Z80HeaderExt* v);
 bool z80_load_v1(RDContext* ctx, RDReader* r, Z80Format* z80);

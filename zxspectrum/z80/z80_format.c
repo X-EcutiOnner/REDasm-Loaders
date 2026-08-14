@@ -109,6 +109,27 @@ fail:
     return NULL;
 }
 
+void z80_init_registers(RDContext* ctx, const Z80Format* z80) {
+    rd_set_regval(ctx, "a", z80->hdr_base.a);
+    rd_set_regval(ctx, "f", z80->hdr_base.f);
+    rd_set_regval(ctx, "bc", z80->hdr_base.bc);
+    rd_set_regval(ctx, "hl", z80->hdr_base.hl);
+    rd_set_regval(ctx, "sp", z80->hdr_base.sp);
+    rd_set_regval(ctx, "i", z80->hdr_base.i);
+
+    rd_set_regval(ctx, "r",
+                  (z80->hdr_base.r & 0x7F) | ((z80->hdr_base.flags & 1) << 7));
+
+    rd_set_regval(ctx, "de", z80->hdr_base.de);
+    rd_set_regval(ctx, "bc'", z80->hdr_base.bc_);
+    rd_set_regval(ctx, "de'", z80->hdr_base.de_);
+    rd_set_regval(ctx, "hl'", z80->hdr_base.hl_);
+    rd_set_regval(ctx, "a'", z80->hdr_base.a_);
+    rd_set_regval(ctx, "f'", z80->hdr_base.f_);
+    rd_set_regval(ctx, "iy", z80->hdr_base.iy);
+    rd_set_regval(ctx, "ix", z80->hdr_base.ix);
+}
+
 bool z80_read_header_base(RDReader* r, Z80HeaderBase* v) {
     rd_reader_read_byte(r, &v->a);
     rd_reader_read_byte(r, &v->f);
