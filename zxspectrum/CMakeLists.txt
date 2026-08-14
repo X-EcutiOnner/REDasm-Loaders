@@ -13,6 +13,7 @@ target_sources(${PROJECT_NAME}
         sna/sna.c
         sna/sna_48k.c
         sna/sna_format.c
+        common.c
         plugin.c
 )
 
