@@ -32,7 +32,7 @@ static bool _z80_try_expand_run(RDReader* r, RDScratchBuffer* sb, u8 b0,
         }
 
         for(u8 i = 0; i < count; i++)
-            rd_scratch_push(sb, (char)value);
+            rd_scratch_push(sb, value);
 
         *out_ok = true;
         return true;
@@ -239,20 +239,25 @@ bool z80_load_v2_v3(RDContext* ctx, RDReader* r, Z80Format* z80) {
         if(length == 0xFFFF) {
             RDScratchBuffer* raw = rd_scratch_create();
             rd_scratch_reserve(raw, 16384);
+
             for(usize i = 0; i < 16384; i++) {
                 u8 b;
+
                 if(!rd_reader_read_byte(r, &b)) {
                     rd_scratch_destroy(raw);
                     return false;
                 }
-                rd_scratch_push(raw, (char)b);
+
+                rd_scratch_push(raw, b);
             }
+
             rd_write(ctx, addr, rd_scratch_data(raw), rd_scratch_length(raw));
             rd_scratch_destroy(raw);
         }
         else {
             RDScratchBuffer* buf = _z80_decompress_block(r, length, 16384);
             if(!buf) return false;
+
             rd_write(ctx, addr, rd_scratch_data(buf), rd_scratch_length(buf));
             rd_scratch_destroy(buf);
         }

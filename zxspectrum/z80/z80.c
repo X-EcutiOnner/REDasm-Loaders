@@ -1,4 +1,5 @@
 #include "z80.h"
+#include "common.h"
 #include "z80/z80_format.h"
 
 static bool _z80_parse(RDLoader* ldr, const RDLoaderRequest* req) {
@@ -37,8 +38,7 @@ static bool _z80_parse(RDLoader* ldr, const RDLoaderRequest* req) {
 }
 
 static bool _z80_load(RDLoader* ldr, RDContext* ctx) {
-    static const u8 STRING_TERMS[] = {0xFF, 0x00};
-    rd_set_string_terminators(ctx, STRING_TERMS, rd_count_of(STRING_TERMS));
+    zx_setup_string_terminators(ctx);
 
     Z80Format* z80 = (Z80Format*)ldr;
     RDReader* r = rd_get_input_reader(ctx);

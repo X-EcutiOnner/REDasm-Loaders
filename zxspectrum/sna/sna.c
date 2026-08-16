@@ -1,4 +1,5 @@
 #include "sna.h"
+#include "common.h"
 #include "sna_format.h"
 
 static bool _sna_parse(RDLoader* ldr, const RDLoaderRequest* req) {
@@ -30,8 +31,7 @@ static bool _sna_parse(RDLoader* ldr, const RDLoaderRequest* req) {
 }
 
 static bool _sna_load(RDLoader* ldr, RDContext* ctx) {
-    static const u8 STRING_TERMS[] = {0xFF, 00};
-    rd_set_string_terminators(ctx, STRING_TERMS, rd_count_of(STRING_TERMS));
+    zx_setup_string_terminators(ctx);
 
     SNAFormat* sna = (SNAFormat*)ldr;
     RDReader* r = rd_get_input_reader(ctx);
