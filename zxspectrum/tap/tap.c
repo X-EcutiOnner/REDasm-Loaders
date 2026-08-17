@@ -29,7 +29,7 @@ static bool _tap_compute_ram_size(RDReader* r, RDAddress* out_ram_end) {
     return true;
 }
 
-static bool _tap_parse(RDLoader* ldr, const RDLoaderRequest* req) {
+static bool tap_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     RD_UNUSED(ldr);
 
     if(rd_stricmp(req->ext, "tap") != 0) return false;
@@ -73,7 +73,7 @@ static bool _tap_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     return true;
 }
 
-static bool _tap_load(RDLoader* ldr, RDContext* ctx) {
+static bool tap_load(RDLoader* ldr, RDContext* ctx) {
     RD_UNUSED(ldr);
 
     zx_setup_string_terminators(ctx);
@@ -170,12 +170,12 @@ fail:
     return false;
 }
 
-static const char* _tap_get_processor(const RDLoader* ldr) {
+static const char* tap_get_processor(const RDLoader* ldr) {
     RD_UNUSED(ldr);
     return "z80";
 }
 
-static const char* _tap_get_name(const RDLoader* ldr) {
+static const char* tap_get_name(const RDLoader* ldr) {
     RD_UNUSED(ldr);
     return "ZX Spectrum TAP image";
 }
@@ -183,8 +183,8 @@ static const char* _tap_get_name(const RDLoader* ldr) {
 const RDLoaderPlugin TAP_LOADER = {
     .level = RD_API_LEVEL,
     .id = "zx_spectrum_tap",
-    .parse = _tap_parse,
-    .load = _tap_load,
-    .get_processor = _tap_get_processor,
-    .get_name = _tap_get_name,
+    .parse = tap_parse,
+    .load = tap_load,
+    .get_processor = tap_get_processor,
+    .get_name = tap_get_name,
 };

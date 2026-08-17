@@ -49,11 +49,6 @@ static bool le_load(RDLoader* ldr, RDContext* ctx) {
     return true;
 }
 
-static RDLoader* le_create(const RDLoaderPlugin* plugin) {
-    RD_UNUSED(plugin);
-    return rd_alloc0(1, sizeof(LEFormat));
-}
-
 static void le_destroy(RDLoader* ldr) {
     LEFormat* le = (LEFormat*)ldr;
     le_objectslice_destroy(&le->objects);
@@ -87,9 +82,9 @@ static const char* le_get_processor(const RDLoader* ldr) {
 const RDLoaderPlugin LE_LOADER = {
     .level = RD_API_LEVEL,
     .id = "mz_linear",
+    .instance_size = sizeof(LEFormat),
     .get_name = le_get_name,
     .get_processor = le_get_processor,
-    .create = le_create,
     .destroy = le_destroy,
     .parse = le_parse,
     .load = le_load,

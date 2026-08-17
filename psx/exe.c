@@ -19,13 +19,6 @@ typedef struct PsxExeHeader {
     u32 SavedSP, SavedFP, SavedGP, SavedRA, SavedS0;
 } PsxExeHeader;
 
-static RDLoader* psx_create(const RDLoaderPlugin* plugin) {
-    RD_UNUSED(plugin);
-    return rd_alloc0(1, sizeof(PsxExeHeader));
-}
-
-static void psx_destroy(RDLoader* ldr) { rd_free(ldr); }
-
 static bool psx_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     PsxExeHeader* h = (PsxExeHeader*)ldr;
 
@@ -91,10 +84,9 @@ static const char* psx_get_processor(const RDLoader* ldr) {
 const RDLoaderPlugin PSX_EXE_LOADER = {
     .level = RD_API_LEVEL,
     .id = "psx_exe",
+    .instance_size = sizeof(PsxExeHeader),
     .get_name = psx_get_name,
     .get_processor = psx_get_processor,
-    .create = psx_create,
-    .destroy = psx_destroy,
     .parse = psx_parse,
     .load = psx_load,
 };

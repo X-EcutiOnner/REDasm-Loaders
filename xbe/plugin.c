@@ -71,13 +71,6 @@ static void _xbe_display_certificate(const XBECertificate* cert) {
     rd_free(title);
 }
 
-static RDLoader* xbe_create(const RDLoaderPlugin* plugin) {
-    RD_UNUSED(plugin);
-    return rd_alloc0(1, sizeof(XBEFormat));
-}
-
-static void xbe_destroy(RDLoader* ldr) { rd_free(ldr); }
-
 static const char* xbe_get_name(const RDLoader* ldr) {
     RD_UNUSED(ldr);
     return "XBox Executable";
@@ -157,10 +150,9 @@ static bool xbe_load(RDLoader* ldr, RDContext* ctx) {
 static const RDLoaderPlugin XBE_LOADER = {
     .level = RD_API_LEVEL,
     .id = "xbox_xbe",
+    .instance_size = sizeof(XBEFormat),
     .get_name = xbe_get_name,
     .get_processor = xbe_get_processor,
-    .create = xbe_create,
-    .destroy = xbe_destroy,
     .parse = xbe_parse,
     .load = xbe_load,
 };

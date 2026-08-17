@@ -2,7 +2,7 @@
 #include "common.h"
 #include "sna_format.h"
 
-static bool _sna_parse(RDLoader* ldr, const RDLoaderRequest* req) {
+static bool sna_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     if(rd_stricmp(req->ext, "sna") != 0) return false;
 
     usize len = rd_reader_get_length(req->input);
@@ -30,7 +30,7 @@ static bool _sna_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     return true;
 }
 
-static bool _sna_load(RDLoader* ldr, RDContext* ctx) {
+static bool sna_load(RDLoader* ldr, RDContext* ctx) {
     zx_setup_string_terminators(ctx);
 
     SNAFormat* sna = (SNAFormat*)ldr;
@@ -47,19 +47,12 @@ static bool _sna_load(RDLoader* ldr, RDContext* ctx) {
     return true;
 }
 
-static RDLoader* _sna_create(const struct RDLoaderPlugin* ldr) {
-    RD_UNUSED(ldr);
-    return rd_alloc0(1, sizeof(SNAFormat));
-}
-
-static void _sna_destroy(RDLoader* ldr) { rd_free(ldr); }
-
-static const char* _sna_get_processor(const RDLoader* ldr) {
+static const char* sna_get_processor(const RDLoader* ldr) {
     RD_UNUSED(ldr);
     return "z80";
 }
 
-static const char* _sna_get_name(const RDLoader* ldr) {
+static const char* sna_get_name(const RDLoader* ldr) {
     const SNAFormat* sna = (const SNAFormat*)ldr;
 
     switch(sna->length) {
@@ -78,10 +71,9 @@ static const char* _sna_get_name(const RDLoader* ldr) {
 const RDLoaderPlugin SNA_LOADER = {
     .level = RD_API_LEVEL,
     .id = "zx_spectrum_sna",
-    .create = _sna_create,
-    .destroy = _sna_destroy,
-    .parse = _sna_parse,
-    .load = _sna_load,
-    .get_processor = _sna_get_processor,
-    .get_name = _sna_get_name,
+    .instance_size = sizeof(SNAFormat),
+    .parse = sna_parse,
+    .load = sna_load,
+    .get_processor = sna_get_processor,
+    .get_name = sna_get_name,
 };

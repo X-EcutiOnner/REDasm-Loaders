@@ -194,13 +194,6 @@ static void _elf_load_symbols(ELFFormat* elf, RDContext* ctx) {
     }
 }
 
-static RDLoader* elf_create(const RDLoaderPlugin* plugin) {
-    RD_UNUSED(plugin);
-    return rd_alloc0(1, sizeof(ELFFormat));
-}
-
-static void elf_destroy(RDLoader* ldr) { rd_free(ldr); }
-
 static bool elf_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     ELFFormat* elf = (ELFFormat*)ldr;
     rd_reader_read(req->input, &elf->ident, sizeof(elf->ident));
@@ -283,10 +276,9 @@ static const char* elf_get_processor(const RDLoader* ldr) {
 static const RDLoaderPlugin ELF_LOADER = {
     .level = RD_API_LEVEL,
     .id = "elf",
+    .instance_size = sizeof(ELFFormat),
     .get_name = elf_get_name,
     .get_processor = elf_get_processor,
-    .create = elf_create,
-    .destroy = elf_destroy,
     .parse = elf_parse,
     .load = elf_load,
 };

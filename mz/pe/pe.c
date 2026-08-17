@@ -218,11 +218,6 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     return true;
 }
 
-static RDLoader* pe_create(const RDLoaderPlugin* plugin) {
-    RD_UNUSED(plugin);
-    return rd_alloc0(1, sizeof(PEFormat));
-}
-
 static void pe_destroy(RDLoader* ldr) {
     PEFormat* pe = (PEFormat*)ldr;
 
@@ -250,9 +245,9 @@ static const char* pe_get_name(const RDLoader* ldr) {
 const RDLoaderPlugin PE_LOADER = {
     .level = RD_API_LEVEL,
     .id = "win_pe",
+    .instance_size = sizeof(PEFormat),
     .get_name = pe_get_name,
     .get_processor = pe_get_processor,
-    .create = pe_create,
     .destroy = pe_destroy,
     .parse = pe_parse,
     .load = pe_load,

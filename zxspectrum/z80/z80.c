@@ -2,7 +2,7 @@
 #include "common.h"
 #include "z80/z80_format.h"
 
-static bool _z80_parse(RDLoader* ldr, const RDLoaderRequest* req) {
+static bool z80_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     if(rd_stricmp(req->ext, "z80") != 0) return false;
 
     Z80Format* z80 = (Z80Format*)ldr;
@@ -37,7 +37,7 @@ static bool _z80_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     return true;
 }
 
-static bool _z80_load(RDLoader* ldr, RDContext* ctx) {
+static bool z80_load(RDLoader* ldr, RDContext* ctx) {
     zx_setup_string_terminators(ctx);
 
     Z80Format* z80 = (Z80Format*)ldr;
@@ -58,19 +58,12 @@ static bool _z80_load(RDLoader* ldr, RDContext* ctx) {
     return false;
 }
 
-static RDLoader* _z80_create(const struct RDLoaderPlugin* ldr) {
-    RD_UNUSED(ldr);
-    return rd_alloc0(1, sizeof(Z80Format));
-}
-
-static void _z80_destroy(RDLoader* ldr) { rd_free(ldr); }
-
-static const char* _z80_get_processor(const RDLoader* ldr) {
+static const char* z80_get_processor(const RDLoader* ldr) {
     RD_UNUSED(ldr);
     return "z80";
 }
 
-static const char* _z80_get_name(const RDLoader* ldr) {
+static const char* z80_get_name(const RDLoader* ldr) {
     const Z80Format* z80 = (const Z80Format*)ldr;
     return rd_format("ZX Spectrum Z80 v%d snapshot", z80->version);
 }
@@ -78,10 +71,9 @@ static const char* _z80_get_name(const RDLoader* ldr) {
 const RDLoaderPlugin Z80_LOADER = {
     .level = RD_API_LEVEL,
     .id = "zx_spectrum_z80",
-    .create = _z80_create,
-    .destroy = _z80_destroy,
-    .parse = _z80_parse,
-    .load = _z80_load,
-    .get_processor = _z80_get_processor,
-    .get_name = _z80_get_name,
+    .instance_size = sizeof(Z80Format),
+    .parse = z80_parse,
+    .load = z80_load,
+    .get_processor = z80_get_processor,
+    .get_name = z80_get_name,
 };
