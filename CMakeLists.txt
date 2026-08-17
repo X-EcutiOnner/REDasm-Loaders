@@ -14,6 +14,7 @@ endif()
 
 add_subdirectory(elf)
 add_subdirectory(mz)
+add_subdirectory(nes)
 add_subdirectory(psx)
 add_subdirectory(xbe)
 add_subdirectory(zxspectrum)
