@@ -1,4 +1,5 @@
 #include "nrom.h"
+#include "common.h"
 #include "ines.h"
 #include <inttypes.h>
 
@@ -23,6 +24,7 @@ static bool nrom_parse(RDLoader* ldr, const RDLoaderRequest* req) {
 static bool nrom_load(RDLoader* ldr, RDContext* ctx) {
     INesHeader* hdr = (INesHeader*)ldr;
     rd_map_segment(ctx, "PRG", NROM_CPU_BASE, NROM_CPU_END, RD_SP_RX);
+    nes_map_memory(ctx);
 
     if(hdr->prg_size >= NROM_BANK_SIZE * 2) {
         // NROM-256: full 32KB PRG, no mirroring needed.

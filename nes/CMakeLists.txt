@@ -10,6 +10,7 @@ add_library(${PROJECT_NAME} SHARED)
 
 target_sources(${PROJECT_NAME} 
     PRIVATE
+        common.c
         ines.c
         nrom.c
         plugin.c
