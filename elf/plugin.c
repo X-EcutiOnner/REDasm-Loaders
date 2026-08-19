@@ -1,6 +1,25 @@
 #include "constants.h"
 #include "format.h"
+#include <inttypes.h>
 #include <redasm/redasm.h>
+
+static const char* _elf_detect_xtensa_processor(u64 entry) {
+    // esp-idf components/esp_system/ld/<chip>/memory.ld.in
+    if(entry >= 0x40100000 && entry < 0x40200000)
+        return "xtensa_esp8266"; // ESP8266_RTOS_SDK esp8266.ld: iram0_0_seg org
+    if(entry >= 0x40370000 && entry < 0x403D0000)
+        return "xtensa_esp32s3"; // SRAM_IRAM_START
+    if(entry >= 0x40080000 && entry < 0x400A0000)
+        return "xtensa_esp32"; // iram0_0_seg org
+    if(entry >= 0x40020000 && entry < 0x40070000)
+        return "xtensa_esp32s2"; // RAM_IRAM_START
+
+    RD_LOG_WARN("xtensa: could not identify chip from entry point %" PRIx64
+                ", defaulting to esp32",
+                entry);
+
+    return "xtensa_esp32";
+}
 
 static u32 _elf_prg_perm(u32 p_flags) {
     u32 perm = 0;
@@ -260,6 +279,9 @@ static const char* elf_get_processor(const RDLoader* ldr) {
         case ELF_EM_AARCH64: return is_be ? "arm64_be" : "arm64_le";
         case ELF_EM_PPC: return "ppc32_be";
         case ELF_EM_PPC64: return is_be ? "ppc64_be" : "ppc64_le";
+
+        case ELF_EM_XTENSA:
+            return _elf_detect_xtensa_processor(elf->ehdr.e_entry);
 
         case ELF_EM_MIPS: {
             if(elf->ehdr.e_flags & ELF_EF_MIPS_ABI_EABI64)

@@ -31,6 +31,7 @@
 #define ELF_EM_PPC64 21
 #define ELF_EM_ARM 40
 #define ELF_EM_X86_64 62
+#define ELF_EM_XTENSA 94
 #define ELF_EM_AARCH64 183
 
 // e_flags
