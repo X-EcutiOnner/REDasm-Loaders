@@ -7,6 +7,7 @@
 #include "pe/dirs/exports.h"
 #include "pe/dirs/imports.h"
 #include "pe/dirs/resources.h"
+#include "pe/dirs/tls.h"
 #include <inttypes.h>
 #include <string.h>
 
@@ -163,6 +164,7 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     pe_read_resources_dir(ctx, pe);
     pe_read_exceptions_dir(ctx, pe);
     pe_read_debug_dir(ctx, pe);
+    pe_read_tls_dir(ctx, pe);
     pe_read_config_dir(ctx, pe);
 
     if(pe->fileheader.PointerToSymbolTable && pe->fileheader.NumberOfSymbols) {
@@ -189,7 +191,8 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
             break;
 
         case PE_CLASS_VISUAL_STUDIO:
-            rd_analyzer_enable(ctx, "compiler_rtti_msvc");
+            rd_analyzer_enable(ctx, "compiler_msvc_rtti");
+            rd_analyzer_enable(ctx, "compiler_msvc_eh");
             break;
 
         default: break;

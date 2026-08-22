@@ -35,6 +35,7 @@ target_sources(${PROJECT_NAME}
         pe/dirs/exports.c
         pe/dirs/imports.c
         pe/dirs/resources.c
+        pe/dirs/tls.c
         pe/classifier.c
         pe/format.c
         pe/pe.c
