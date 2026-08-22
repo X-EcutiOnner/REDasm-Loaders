@@ -22,7 +22,7 @@ typedef struct CvInfoPdb20 {
 
 typedef struct CvInfoPdb70 {
     u32 CvSignature;
-    u8 Signature[16]; // GUID
+    u8 Guid[16];
     u32 Age;
 } CvInfoPdb70;
 

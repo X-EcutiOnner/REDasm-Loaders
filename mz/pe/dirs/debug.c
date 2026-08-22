@@ -33,7 +33,7 @@ static bool _pe_read_cv_info_pdb20(RDReader* r, CvInfoPdb20* pdb) {
 
 static bool _pe_read_cv_info_pdb70(RDReader* r, CvInfoPdb70* pdb) {
     rd_reader_read_le32(r, &pdb->CvSignature);
-    rd_reader_read(r, pdb->Signature, sizeof(pdb->Signature));
+    rd_reader_read(r, pdb->Guid, sizeof(pdb->Guid));
     rd_reader_read_le32(r, &pdb->Age);
 
     return !rd_reader_has_error(r);
@@ -67,13 +67,17 @@ static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
 
         rd_library_type(ctx, dbg_va, "CV_INFO_PDB20", 0, RD_TYPE_NONE);
 
-        RDAddress pdbname_va = dbg_va + rd_reader_tell(r);
+        RDAddress pdbfilename_va = dbg_va + rd_reader_tell(r);
         usize n;
-        rd_reader_seek(r, pdbname_va);
+        rd_reader_seek(r, pdbfilename_va);
 
         const char* pdbname = rd_reader_peek_str(r, &n);
-        if(pdbname)
-            rd_library_type(ctx, pdbname_va, "char", n + 1, RD_TYPE_NONE);
+
+        if(pdbname) {
+            rd_library_type(ctx, pdbfilename_va, "char", n + 1, RD_TYPE_NONE);
+            rd_library_name(ctx, pdbfilename_va, "__pdb_filename");
+            RD_LOG_INFO("PDB 2.0: %s", pdbname);
+        }
     }
     else if(sig == PE_CVINFO_PDB70_SIGNATURE) {
         CvInfoPdb70 pdb;
@@ -81,13 +85,15 @@ static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
 
         rd_library_type(ctx, dbg_va, "CV_INFO_PDB70", 0, RD_TYPE_NONE);
 
-        RDAddress pdbname_va = dbg_va + rd_reader_tell(r);
         usize n;
-        rd_reader_seek(r, pdbname_va);
+        const char* pdb_filename = rd_reader_peek_str(r, &n);
 
-        const char* pdbname = rd_reader_peek_str(r, &n);
-        if(pdbname)
-            rd_library_type(ctx, pdbname_va, "char", n + 1, RD_TYPE_NONE);
+        if(pdb_filename) {
+            RDAddress pdbfilename_va = (RDAddress)rd_reader_tell(r);
+            rd_library_type(ctx, pdbfilename_va, "char", n + 1, RD_TYPE_NONE);
+            rd_library_name(ctx, pdbfilename_va, "__pdb_filename");
+            RD_LOG_INFO("PDB 7.0: %s", pdb_filename);
+        }
     }
 }
 
