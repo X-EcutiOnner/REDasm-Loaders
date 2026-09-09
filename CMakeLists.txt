@@ -12,6 +12,7 @@ else()
     set(REDASM_INSTALL_PLUGINS "${CMAKE_INSTALL_LIBDIR}/redasm/plugins/loaders")
 endif()
 
+add_subdirectory(android)
 add_subdirectory(elf)
 add_subdirectory(mz)
 add_subdirectory(nes)
