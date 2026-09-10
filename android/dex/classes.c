@@ -2,7 +2,8 @@
 #include "strings.h"
 #include <inttypes.h>
 
-#define DEX_CODE_ITEM_HEADER_SIZE 0x10
+#define DEX_CODE_ITEM_HEADER_SIZE 16
+#define DEX_TRY_ITEM_SIZE 8
 
 typedef struct DEXCodeItem {
     u16 registers_size;
@@ -13,6 +14,18 @@ typedef struct DEXCodeItem {
     u32 insns_size;
 } DEXCodeItem;
 
+/*
+ * - start_addr and insn_count are in CODE UNITS from insns;
+ * - handler_off is a BYTE offset from the start of the
+ *   encoded_catch_handler_list.
+ * - Three fields, two bases, two units.
+ */
+typedef struct DEXTryItem {
+    u32 start_addr;
+    u16 insn_count;
+    u16 handler_off;
+} DEXTryItem;
+
 static bool _dex_read_code_item(RDReader* r, DEXCodeItem* v) {
     rd_reader_read_le16(r, &v->registers_size);
     rd_reader_read_le16(r, &v->ins_size);
@@ -20,6 +33,13 @@ static bool _dex_read_code_item(RDReader* r, DEXCodeItem* v) {
     rd_reader_read_le16(r, &v->tries_size);
     rd_reader_read_le32(r, &v->debug_info_off);
     rd_reader_read_le32(r, &v->insns_size);
+    return !rd_reader_has_error(r);
+}
+
+static bool _dex_read_try_item(RDReader* r, DEXTryItem* v) {
+    rd_reader_read_le32(r, &v->start_addr);
+    rd_reader_read_le16(r, &v->insn_count);
+    rd_reader_read_le16(r, &v->handler_off);
     return !rd_reader_has_error(r);
 }
 
@@ -34,6 +54,74 @@ static bool _dex_get_class_def(RDReader* r, const DEXFormat* dex, u32 idx,
     bool ok = dex_read_class_def(r, cd);
     rd_reader_restore(r);
     return ok;
+}
+
+static void _dex_emit_handler_list(RDContext* ctx, RDReader* r, DEXFormat* dex,
+                                   u64 insns, u64 try_start, u64 list) {
+    rd_reader_save(r);
+    rd_reader_seek(r, list);
+
+    RDSLeb128 size;
+    if(!rd_reader_read_sleb128(r, &size)) goto done;
+
+    i64 ntyped = size.value < 0 ? -size.value : size.value;
+
+    for(i64 i = 0; i < ntyped; i++) {
+        RDULeb128 typeidx, addr;
+        if(!rd_reader_read_uleb128(r, &typeidx)) goto done;
+        if(!rd_reader_read_uleb128(r, &addr)) goto done;
+
+        RDAddress handler = insns + (addr.value * 2);
+        const char* type = dex_type_descriptor(r, dex, (u32)typeidx.value);
+
+        /*
+         * The edge is from the protected range, not from any single
+         * instruction: any throw inside it can reach here.
+         * Without it the handler is unreachable.
+         */
+        rd_add_xref(ctx, try_start, handler, RD_CR_JUMP);
+        rd_add_comment_before(ctx, handler,
+                              rd_format("catch %s", type ? type : "?"));
+    }
+
+    if(size.value <= 0) {
+        RDULeb128 addr;
+        if(!rd_reader_read_uleb128(r, &addr)) goto done;
+
+        RDAddress handler = insns + (addr.value * 2);
+        rd_add_xref(ctx, try_start, handler, RD_CR_JUMP);
+        rd_add_comment_before(ctx, handler, "catch all");
+    }
+
+done:
+    rd_reader_restore(r);
+}
+
+static void _dex_emit_handlers(RDContext* ctx, RDReader* r, DEXFormat* dex,
+                               u64 insns, u64 tries, u64 handlers,
+                               u16 tries_size) {
+    for(u16 i = 0; i < tries_size; i++) {
+        DEXTryItem t;
+
+        rd_reader_save(r);
+        rd_reader_seek(r, tries + ((u64)i * DEX_TRY_ITEM_SIZE));
+        bool ok = _dex_read_try_item(r, &t);
+        rd_reader_restore(r);
+
+        if(!ok) break;
+
+        u64 try_start = insns + ((u64)t.start_addr * 2);
+
+        // handler_off is relative to the handler list, and offset 0 holds
+        // the list count -- a real handler never starts there
+        if(!t.handler_off) continue;
+
+        rd_add_comment_before(ctx, try_start,
+                              rd_format("try (%u instructions)", t.insn_count));
+
+        _dex_emit_handler_list(ctx, r, dex, insns, try_start,
+                               handlers + t.handler_off);
+    }
 }
 
 static void _dex_emit_method(RDContext* ctx, RDReader* r, DEXFormat* dex,
@@ -84,6 +172,22 @@ static void _dex_emit_method(RDContext* ctx, RDReader* r, DEXFormat* dex,
     rd_library_name(ctx, addr, rd_format("%s_entry", name));
     if(name) rd_library_name(ctx, insns, name);
     rd_set_function(ctx, insns);
+
+    if(ci.tries_size) {
+        u64 tries = rd_align_up(insns + ((u64)ci.insns_size * 2), sizeof(u32));
+        u64 handlers = tries + ((u64)ci.tries_size * DEX_TRY_ITEM_SIZE);
+
+        if(handlers < dex->header.file_size) {
+            rd_library_type(ctx, tries, "DEX_TRY_ITEM", ci.tries_size,
+                            RD_TYPE_NONE);
+            _dex_emit_handlers(ctx, r, dex, insns, tries, handlers,
+                               ci.tries_size);
+        }
+        else {
+            RD_LOG_WARN("method %" PRIu32 " has try tables past file_size",
+                        methodidx);
+        }
+    }
 
     rd_free(name);
 }
