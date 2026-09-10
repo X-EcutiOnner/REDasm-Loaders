@@ -2,7 +2,18 @@
 
 #include <redasm/redasm.h>
 
-typedef enum DalvikFormat {
+#define DALVIK_PAYLOAD_PACKED_SWITCH 0x0100
+#define DALVIK_PAYLOAD_SPARSE_SWITCH 0x0200
+#define DALVIK_PAYLOAD_FILL_ARRAY_DATA 0x0300
+
+typedef enum {
+    DALVIK_ID_CONST_WIDE_HIGH16 = 0x19,
+    DALVIK_ID_PACKED_SWITCH = 0x2B,
+    DALVIK_ID_SPARSE_SWITCH = 0x2C,
+    DALVIK_ID_FILL_ARRAY_DATA = 0x26,
+} DalvikInstructionId;
+
+typedef enum {
     DALVIK_FMT_INVALID = 0,
     DALVIK_FMT_10X,
     DALVIK_FMT_12X,
@@ -58,7 +69,3 @@ typedef struct DalvikFormatInfo {
 
 extern const DalvikOpcode DALVIK_OPCODES[256];
 extern const DalvikFormatInfo DALVIK_FORMATS[DALVIK_FMT_COUNT];
-
-#define DALVIK_PAYLOAD_PACKED_SWITCH 0x0100
-#define DALVIK_PAYLOAD_SPARSE_SWITCH 0x0200
-#define DALVIK_PAYLOAD_FILL_ARRAY 0x0300

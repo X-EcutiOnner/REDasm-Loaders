@@ -19,6 +19,32 @@ static void _dex_type_table(RDContext* ctx, u32 off, u32 size,
     rd_library_type(ctx, off, tname, size, RD_TYPE_NONE);
 }
 
+static void _dex_name_strings(RDContext* ctx, RDReader* r, DEXFormat* dex) {
+    const DEXHeader* hdr = &dex->header;
+
+    for(u32 i = 0; i < hdr->string_ids_size; i++) {
+        u32 dataoff;
+        if(!dex_get_string_offset(r, hdr, i, &dataoff)) continue;
+
+        RDAddress text;
+        usize nbytes;
+        if(!dex_string_extent(r, hdr, dataoff, &text, &nbytes)) continue;
+
+        /*
+         * char[n + 1] so the type covers the terminator, which the
+         * renderer's char-array path expects.
+         * The uleb128 prefix stays untyped: it is neither text nor code, and a
+         * detector cannot find the boundary on its own because a prefix byte is
+         * very often printable.
+         */
+        rd_library_type(ctx, text, "char", nbytes + 1, RD_TYPE_NONE);
+
+        // the STR_IDS entry addresses the ITEM, not the text
+        rd_add_xref(ctx, hdr->string_ids_off + ((u64)i * DEX_STRING_ID_SIZE),
+                    dataoff, RD_DR_ADDRESS);
+    }
+}
+
 static void _dex_name_methods(RDContext* ctx, RDReader* r, DEXFormat* dex) {
     for(u32 i = 0; i < dex->header.method_ids_size; i++) {
         const char* n = dex_method_name(r, dex, i);
@@ -43,6 +69,16 @@ static void _dex_name_types(RDContext* ctx, RDReader* r, DEXFormat* dex) {
         }
 
         u64 addr = dex->header.type_ids_off + ((u64)i * DEX_TYPE_ID_SIZE);
+        rd_auto_name(ctx, addr, n);
+    }
+}
+
+static void _dex_name_fields(RDContext* ctx, RDReader* r, DEXFormat* dex) {
+    for(u32 i = 0; i < dex->header.field_ids_size; i++) {
+        const char* n = dex_field_name(r, dex, i);
+        if(!n) continue;
+
+        u64 addr = dex->header.field_ids_off + ((u64)i * DEX_FIELD_ID_SIZE);
         rd_auto_name(ctx, addr, n);
     }
 }
@@ -84,8 +120,10 @@ static bool dex_load(RDLoader* ldr, RDContext* ctx) {
 
     r = rd_get_reader(ctx);
     dex_walk_classes(ctx, r, dex);
+    _dex_name_strings(ctx, r, dex);
     _dex_name_methods(ctx, r, dex);
     _dex_name_types(ctx, r, dex);
+    _dex_name_fields(ctx, r, dex);
 
     return true;
 }

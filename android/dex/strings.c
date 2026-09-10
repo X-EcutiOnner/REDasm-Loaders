@@ -6,36 +6,6 @@
 #define DEX_NAME_SEP '_'
 #define DEX_SHORTY_SEP '@'
 
-static bool _dex_get_string_offset(RDReader* r, const DEXHeader* hdr, u32 idx,
-                                   u32* off) {
-    if(idx >= hdr->string_ids_size) {
-        RD_LOG_FAIL("string index %" PRIu32 " out of range (%" PRIu32 ")", idx,
-                    hdr->string_ids_size);
-        return false;
-    }
-
-    u32 dataoff = 0;
-    bool ok = false;
-
-    rd_reader_save(r);
-    rd_reader_seek(r, hdr->string_ids_off + ((u64)idx * sizeof(u32)));
-
-    if(rd_reader_read_le32(r, &dataoff)) {
-        if(dataoff < hdr->file_size) {
-            if(off) *off = dataoff;
-            ok = true;
-        }
-        else {
-            RD_LOG_FAIL("string %" PRIu32 " data offset %" PRIu32
-                        " is out of bounds",
-                        idx, dataoff);
-        }
-    }
-
-    rd_reader_restore(r);
-    return ok;
-}
-
 static const char* _dex_primitive_name(char c) {
     switch(c) {
         case 'V': return "void";
@@ -178,13 +148,89 @@ static bool _dex_get_method_id(RDReader* r, const DEXFormat* dex, u32 methodidx,
     return ok;
 }
 
+bool dex_get_string_offset(RDReader* r, const DEXHeader* hdr, u32 idx,
+                           u32* off) {
+    if(idx >= hdr->string_ids_size) {
+        RD_LOG_FAIL("string index %" PRIu32 " out of range (%" PRIu32 ")", idx,
+                    hdr->string_ids_size);
+        return false;
+    }
+
+    u32 dataoff = 0;
+    bool ok = false;
+
+    rd_reader_save(r);
+    rd_reader_seek(r, hdr->string_ids_off + ((u64)idx * sizeof(u32)));
+
+    if(rd_reader_read_le32(r, &dataoff)) {
+        if(dataoff < hdr->file_size) {
+            if(off) *off = dataoff;
+            ok = true;
+        }
+        else {
+            RD_LOG_FAIL("string %" PRIu32 " data offset %" PRIu32
+                        " is out of bounds",
+                        idx, dataoff);
+        }
+    }
+
+    rd_reader_restore(r);
+    return ok;
+}
+
+bool dex_string_extent(RDReader* r, const DEXHeader* hdr, u32 dataoff,
+                       RDAddress* text, usize* nbytes) {
+    if(dataoff >= hdr->file_size) return false;
+
+    bool ok = false;
+    rd_reader_save(r);
+    rd_reader_seek(r, dataoff);
+
+    RDULeb128 utf16size;
+    if(!rd_reader_read_uleb128(r, &utf16size)) goto done;
+
+    // an implausible declared length is corruption, not a long string
+    if(utf16size.value > hdr->file_size) goto done;
+
+    /*
+     * utf16_size counts UTF-16 code units, not bytes: MUTF-8 uses up to
+     * three bytes per unit, so it bounds the scan rather than sizing it.
+     * The terminator is what actually ends the data.
+     * MUTF-8 encodes an embedded U+0000 as C0 80 precisely so a bare NUL never
+     * appears.
+     */
+    usize maxbytes = (usize)utf16size.value * 3;
+    usize n = 0;
+
+    while(n <= maxbytes) {
+        u8 b;
+        if(!rd_reader_read_byte(r, &b)) goto done; // truncated
+
+        if(!b) {
+            ok = true;
+            break;
+        }
+
+        n++;
+    }
+
+    if(!ok) goto done;
+
+    if(text) *text = dataoff + utf16size.length;
+    if(nbytes) *nbytes = n;
+
+done:
+    rd_reader_restore(r);
+    return ok;
+}
+
 const char* dex_read_string_to(RDReader* r, const DEXHeader* hdr, u32 idx,
                                RDScratchBuffer* raw, RDScratchBuffer* buf) {
     bool ok = false;
     usize maxbytes = 0, n = 0;
 
     u32 dataoff;
-    if(!_dex_get_string_offset(r, hdr, idx, &dataoff)) return NULL;
+    if(!dex_get_string_offset(r, hdr, idx, &dataoff)) return NULL;
 
     rd_reader_save(r);
     rd_reader_seek(r, dataoff);

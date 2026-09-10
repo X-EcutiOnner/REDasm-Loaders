@@ -10,7 +10,6 @@ add_library(${PROJECT_NAME} SHARED)
 
 target_sources(${PROJECT_NAME} 
     PRIVATE
-        dalvik/common.c
         dalvik/dalvik.c
         dalvik/formats.c
         dalvik/opcodes.c

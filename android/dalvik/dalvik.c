@@ -5,7 +5,62 @@
 
 #define DALVIK_MAX_REG 0xFFFF
 
+static void _dalvik_fill_array_data(RDContext* ctx, RDAddress payload) {
+    u16 ident, element_width;
+    u32 size;
+    if(!rd_read_le16(ctx, payload, &ident)) return;
+    if(!rd_read_le16(ctx, payload + sizeof(u16), &element_width)) return;
+    if(!rd_read_le32(ctx, payload + (sizeof(u16) * 2), &size)) return;
+
+    if(ident != DALVIK_PAYLOAD_FILL_ARRAY_DATA || !element_width || !size)
+        return;
+
+    rd_library_type(ctx, payload, "DALVIK_FILL_ARRAY_DATA", 0, RD_TYPE_NONE);
+
+    RDAddress data = payload + 8;
+    const char* tname = rd_integral_from_size(element_width);
+    if(tname) rd_library_type(ctx, data, tname, size, RD_TYPE_NONE);
+}
+
+static void _dalvik_switch_payload(RDContext* ctx, const RDInstruction* instr,
+                                   RDAddress payload) {
+    u16 ident, size;
+    if(!rd_read_le16(ctx, payload, &ident)) return;
+    if(!rd_read_le16(ctx, payload + sizeof(u16), &size)) return;
+    if(!size) return;
+
+    RDAddress keys = 0, targets;
+    const char* tname;
+
+    if(ident == DALVIK_PAYLOAD_PACKED_SWITCH) {
+        tname = "DALVIK_PACKED_SWITCH";
+        targets = payload + 8; // ident, size, first_key
+    }
+    else if(ident == DALVIK_PAYLOAD_SPARSE_SWITCH) {
+        tname = "DALVIK_SPARSE_SWITCH";
+        keys = payload + 4;
+        targets = keys + ((u64)size * sizeof(u32));
+    }
+    else
+        return;
+
+    rd_library_type(ctx, payload, tname, 0, RD_TYPE_NONE);
+    if(keys) rd_library_type(ctx, keys, "i32", size, RD_TYPE_NONE);
+    rd_library_type(ctx, targets, "i32", size, RD_TYPE_NONE);
+
+    for(u16 i = 0; i < size; i++) {
+        u32 off;
+        if(!rd_read_le32(ctx, targets + ((u64)i * sizeof(u32)), &off)) break;
+
+        RDAddress dest = instr->address + ((i64)(i32)off * 2);
+        rd_add_xref(ctx, instr->address, dest, RD_CR_JUMP);
+        rd_flow(ctx, dest); // nothing else reaches a case target
+    }
+}
+
 static void dalvik_setup(RDContext* ctx, RDProcessor* p) {
+    rd_kb_load(ctx, "os/android/dalvik");
+
     Dalvik* dalvik = (Dalvik*)p;
 
     RDReader* r = rd_get_reader(ctx);
@@ -43,15 +98,99 @@ static void dalvik_decode(RDContext* ctx, RDInstruction* instr,
     if(!op->mnemonic) return;
 
     switch(op->format) {
-        case DALVIK_FMT_21C: {
+        case DALVIK_FMT_10T:
+            if(!dalvik_decode_10t(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_10X: break; // no operands
+
+        case DALVIK_FMT_11N:
+            if(!dalvik_decode_11n(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_11X:
+            if(!dalvik_decode_11x(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_12X:
+            if(!dalvik_decode_12x(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_20T:
+            if(!dalvik_decode_20t(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_21C:
             if(!dalvik_decode_21c(ctx, instr, op, unit0, dalvik)) return;
             break;
-        }
 
-        case DALVIK_FMT_35C: {
+        case DALVIK_FMT_21H:
+            if(!dalvik_decode_21h(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_21S:
+            if(!dalvik_decode_21s(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_21T:
+            if(!dalvik_decode_21t(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_22B:
+            if(!dalvik_decode_22b(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_22C:
+            if(!dalvik_decode_22c(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_22S:
+            if(!dalvik_decode_22s(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_22T:
+            if(!dalvik_decode_22t(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_22X:
+            if(!dalvik_decode_22x(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_23X:
+            if(!dalvik_decode_23x(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_30T:
+            if(!dalvik_decode_30t(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_31C:
+            if(!dalvik_decode_31c(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_31I:
+            if(!dalvik_decode_31i(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_31T:
+            if(!dalvik_decode_31t(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_32X:
+            if(!dalvik_decode_32x(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_35C:
             if(!dalvik_decode_35c(ctx, instr, op, unit0, dalvik)) return;
             break;
-        }
+
+        case DALVIK_FMT_3RC:
+            if(!dalvik_decode_3rc(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_51L:
+            if(!dalvik_decode_51l(ctx, instr, op, unit0, dalvik)) return;
+            break;
 
         default: break;
     }
@@ -65,6 +204,30 @@ static void dalvik_decode(RDContext* ctx, RDInstruction* instr,
 static void dalvik_emulate(RDContext* ctx, const RDInstruction* instr,
                            RDProcessor* p) {
     RD_UNUSED(p);
+
+    if(instr->id == DALVIK_ID_PACKED_SWITCH ||
+       instr->id == DALVIK_ID_SPARSE_SWITCH) {
+        rd_add_xref(ctx, instr->address, instr->operands[1].addr,
+                    RD_DR_ADDRESS);
+        _dalvik_switch_payload(ctx, instr, instr->operands[1].addr);
+    }
+    else if(instr->id == DALVIK_ID_FILL_ARRAY_DATA) {
+        rd_add_xref(ctx, instr->address, instr->operands[1].addr,
+                    RD_DR_ADDRESS);
+        _dalvik_fill_array_data(ctx, instr->operands[1].addr);
+    }
+    else {
+        rd_foreach_operand(i, op, instr) {
+            if(op->kind != RD_OP_ADDR) continue;
+
+            if(rd_instr_is_call(instr))
+                rd_add_xref(ctx, instr->address, op->addr, RD_CR_CALL);
+            else if(rd_instr_is_jump(instr))
+                rd_add_xref(ctx, instr->address, op->addr, RD_CR_JUMP);
+            else
+                rd_add_xref(ctx, instr->address, op->addr, RD_DR_ADDRESS);
+        }
+    }
 
     if(rd_instr_can_flow(instr)) rd_flow(ctx, instr->address + instr->length);
 }
@@ -107,13 +270,8 @@ static bool dalvik_render_operand(RDRenderer* r, const RDInstruction* instr,
             return true;
         }
 
-        case RD_OP_ADDR: {
-            if(op->userdata1 != DALVIK_IDX_STRING) break;
-
-            const char* str = dalvik_read_string(ctx, dalvik, op->userdata2);
-            if(!str) break;
-
-            rd_renderer_str(r, str, true);
+        case RD_OP_CNST: {
+            rd_renderer_num(r, (i64)op->cnst, 10, 0, RD_NUM_NOADDR);
             return true;
         }
 

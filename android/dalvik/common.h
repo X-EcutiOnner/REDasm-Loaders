@@ -10,5 +10,3 @@ typedef struct Dalvik {
     RDScratchBuffer* raw_buf;
     RDScratchBuffer* string_buf;
 } Dalvik;
-
-const char* dalvik_read_string(RDContext* ctx, Dalvik* dalvik, u32 idx);

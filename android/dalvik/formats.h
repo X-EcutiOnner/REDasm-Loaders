@@ -18,8 +18,72 @@ static inline u8 dalvik_reglist_reg(u64 v, u8 i) {
 
 const char* dalvik_index_prefix(u8 kind);
 
+bool dalvik_decode_10t(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_11n(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_11x(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_12x(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_20t(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
 bool dalvik_decode_21c(const RDContext* ctx, RDInstruction* instr,
                        const DalvikOpcode* info, u16 unit0,
                        const Dalvik* dalvik);
+bool dalvik_decode_21h(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_21s(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_21t(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_22b(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_22c(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_22s(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_22t(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_22x(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_23x(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_30t(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_31c(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_31i(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_31t(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_32x(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
 bool dalvik_decode_35c(const RDContext* ctx, RDInstruction* instr,
-                       const DalvikOpcode* op, u16 unit0, const Dalvik* dalvik);
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_3rc(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
+bool dalvik_decode_51l(const RDContext* ctx, RDInstruction* instr,
+                       const DalvikOpcode* info, u16 unit0,
+                       const Dalvik* dalvik);
