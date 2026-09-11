@@ -45,6 +45,20 @@ static void _dex_name_strings(RDContext* ctx, RDReader* r, DEXFormat* dex) {
     }
 }
 
+static void _dex_name_protos(RDContext* ctx, RDReader* r, DEXFormat* dex) {
+    for(u32 i = 0; i < dex->header.proto_ids_size; i++) {
+        const char* n = dex_proto_name(r, dex, i);
+
+        if(!n) {
+            RD_LOG_WARN("cannot build a name for proto %" PRIu32, i);
+            continue;
+        }
+
+        u64 addr = dex->header.proto_ids_off + ((u64)i * DEX_PROTO_ID_SIZE);
+        rd_auto_name(ctx, addr, n);
+    }
+}
+
 static void _dex_name_methods(RDContext* ctx, RDReader* r, DEXFormat* dex) {
     for(u32 i = 0; i < dex->header.method_ids_size; i++) {
         const char* n = dex_method_name(r, dex, i);
@@ -121,6 +135,7 @@ static bool dex_load(RDLoader* ldr, RDContext* ctx) {
     r = rd_get_reader(ctx);
     dex_walk_classes(ctx, r, dex);
     _dex_name_strings(ctx, r, dex);
+    _dex_name_protos(ctx, r, dex);
     _dex_name_methods(ctx, r, dex);
     _dex_name_types(ctx, r, dex);
     _dex_name_fields(ctx, r, dex);

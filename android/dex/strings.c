@@ -354,3 +354,18 @@ const char* dex_field_name(RDReader* r, DEXFormat* dex, u32 fieldidx) {
     rd_scratch_push(dex->name_buf, '\0');
     return rd_scratch_data(dex->name_buf);
 }
+
+const char* dex_proto_name(RDReader* r, DEXFormat* dex, u32 protoidx) {
+    DEXProtoId pid;
+    if(!_dex_get_proto_id(r, dex, protoidx, &pid)) return NULL;
+
+    const char* shorty =
+        dex_read_string(r, dex, pid.shorty_idx, dex->string_buf);
+    if(!shorty) return NULL;
+
+    rd_scratch_clear(dex->name_buf);
+    rd_scratch_puts(dex->name_buf, "proto_");
+    _dex_append_sanitized(dex->name_buf, shorty);
+    rd_scratch_push(dex->name_buf, '\0');
+    return rd_scratch_data(dex->name_buf);
+}

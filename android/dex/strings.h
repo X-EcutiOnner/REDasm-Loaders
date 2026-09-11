@@ -16,3 +16,4 @@ const char* dex_type_descriptor(RDReader* r, DEXFormat* dex, u32 typeidx);
 const char* dex_type_name(RDReader* r, DEXFormat* dex, u32 typeidx);
 const char* dex_method_name(RDReader* r, DEXFormat* dex, u32 methodidx);
 const char* dex_field_name(RDReader* r, DEXFormat* dex, u32 fieldidx);
+const char* dex_proto_name(RDReader* r, DEXFormat* dex, u32 protoidx);
