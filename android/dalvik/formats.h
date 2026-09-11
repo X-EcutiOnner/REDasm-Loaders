@@ -84,6 +84,12 @@ bool dalvik_decode_35c(const RDContext* ctx, RDInstruction* instr,
 bool dalvik_decode_3rc(const RDContext* ctx, RDInstruction* instr,
                        const DalvikOpcode* info, u16 unit0,
                        const Dalvik* dalvik);
+bool dalvik_decode_45cc(const RDContext* ctx, RDInstruction* instr,
+                        const DalvikOpcode* info, u16 unit0,
+                        const Dalvik* dalvik);
+bool dalvik_decode_4rcc(const RDContext* ctx, RDInstruction* instr,
+                        const DalvikOpcode* info, u16 unit0,
+                        const Dalvik* dalvik);
 bool dalvik_decode_51l(const RDContext* ctx, RDInstruction* instr,
                        const DalvikOpcode* info, u16 unit0,
                        const Dalvik* dalvik);

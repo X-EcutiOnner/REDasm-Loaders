@@ -496,6 +496,58 @@ bool dalvik_decode_3rc(const RDContext* ctx, RDInstruction* instr,
     return true;
 }
 
+bool dalvik_decode_45cc(const RDContext* ctx, RDInstruction* instr,
+                        const DalvikOpcode* info, u16 unit0,
+                        const Dalvik* dalvik) {
+    RD_UNUSED(info);
+
+    u16 unit1, unit2, unit3;
+    if(!rd_read_le16(ctx, instr->address + sizeof(u16), &unit1)) return false;
+    if(!rd_read_le16(ctx, instr->address + (sizeof(u16) * 2), &unit2))
+        return false;
+    if(!rd_read_le16(ctx, instr->address + (sizeof(u16) * 3), &unit3))
+        return false;
+
+    u8 a = (u8)((unit0 >> 12) & 0xF);
+    if(a > 5) return false;
+
+    // same packing as 35c: unit2 verbatim, G lifted out of unit0
+    instr->operands[0].kind = DALVIK_OP_REGLIST;
+    instr->operands[0].count = a;
+    instr->operands[0].cnst = (u64)unit2 | ((u64)((unit0 >> 8) & 0xF) << 16);
+
+    _dalvik_set_index_operand(ctx, dalvik, &instr->operands[1],
+                              DALVIK_IDX_METHOD, unit1);
+
+    _dalvik_set_index_operand(ctx, dalvik, &instr->operands[2],
+                              DALVIK_IDX_PROTO, unit3);
+    return true;
+}
+
+bool dalvik_decode_4rcc(const RDContext* ctx, RDInstruction* instr,
+                        const DalvikOpcode* info, u16 unit0,
+                        const Dalvik* dalvik) {
+    RD_UNUSED(info);
+
+    u16 unit1, unit2, unit3;
+    if(!rd_read_le16(ctx, instr->address + sizeof(u16), &unit1)) return false;
+    if(!rd_read_le16(ctx, instr->address + (sizeof(u16) * 2), &unit2))
+        return false;
+    if(!rd_read_le16(ctx, instr->address + (sizeof(u16) * 3), &unit3))
+        return false;
+
+    instr->operands[0].kind = DALVIK_OP_REGRANGE;
+    instr->operands[0].reg = unit2;
+    instr->operands[0].count = (u8)((unit0 >> 8) & 0xFF);
+
+    _dalvik_set_index_operand(ctx, dalvik, &instr->operands[1],
+                              DALVIK_IDX_METHOD, unit1);
+
+    _dalvik_set_index_operand(ctx, dalvik, &instr->operands[2],
+                              DALVIK_IDX_PROTO, unit3);
+    return true;
+}
+
 bool dalvik_decode_51l(const RDContext* ctx, RDInstruction* instr,
                        const DalvikOpcode* info, u16 unit0,
                        const Dalvik* dalvik) {

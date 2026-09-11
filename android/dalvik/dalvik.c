@@ -188,11 +188,22 @@ static void dalvik_decode(RDContext* ctx, RDInstruction* instr,
             if(!dalvik_decode_3rc(ctx, instr, op, unit0, dalvik)) return;
             break;
 
+        case DALVIK_FMT_45CC:
+            if(!dalvik_decode_45cc(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
+        case DALVIK_FMT_4RCC:
+            if(!dalvik_decode_4rcc(ctx, instr, op, unit0, dalvik)) return;
+            break;
+
         case DALVIK_FMT_51L:
             if(!dalvik_decode_51l(ctx, instr, op, unit0, dalvik)) return;
             break;
 
-        default: break;
+        default:
+            // RD_LOG_WARN("unhandled format %d @ %08lx", op->format,
+            //             instr->address);
+            break;
     }
 
     instr->id = opcode;
@@ -256,7 +267,7 @@ static bool dalvik_render_operand(RDRenderer* r, const RDInstruction* instr,
             rd_renderer_reg(r, op->reg);
 
             if(op->count > 1) {
-                rd_renderer_norm(r, " .. ");
+                rd_renderer_norm(r, "..");
                 rd_renderer_reg(r, (op->reg + op->count - 1));
             }
 
