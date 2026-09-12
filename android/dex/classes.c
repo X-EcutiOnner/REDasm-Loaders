@@ -1,9 +1,26 @@
 #include "classes.h"
 #include "strings.h"
 #include <inttypes.h>
+#include <string.h>
 
 #define DEX_CODE_ITEM_HEADER_SIZE 16
 #define DEX_TRY_ITEM_SIZE 8
+
+typedef struct DEXSkipRule {
+    const char* option;
+    const char* prefix;
+} DEXSkipRule;
+
+static const DEXSkipRule DEX_SKIP_RULES[] = {
+    {"skip_support", "Landroid/support/"},
+    {"skip_android", "Landroid/"},
+    {"skip_androidx", "Landroidx/"},
+    {"skip_google", "Lcom/google/"},
+    {"skip_java", "Ljava/"},
+    {"skip_java", "Ljavax/"},
+    {"skip_kotlin", "Lkotlin/"},
+    {NULL, NULL},
+};
 
 typedef struct DEXCodeItem {
     u16 registers_size;
@@ -125,13 +142,13 @@ static void _dex_emit_handlers(RDContext* ctx, RDReader* r, DEXFormat* dex,
 }
 
 static void _dex_emit_method(RDContext* ctx, RDReader* r, DEXFormat* dex,
-                             u32 methodidx, u32 code_off) {
+                             u32 methodidx, u32 code_off, bool skipped) {
     char* name = rd_strdup(dex_method_name(r, dex, methodidx));
 
     u64 addr =
         dex->header.method_ids_off + ((u64)methodidx * DEX_METHOD_ID_SIZE);
 
-    if(!code_off) {
+    if(skipped || !code_off) {
         rd_set_external(ctx, addr, NULL, RD_EXT_IMPORTED);
         if(name) rd_library_name(ctx, addr, name);
 
@@ -193,7 +210,7 @@ static void _dex_emit_method(RDContext* ctx, RDReader* r, DEXFormat* dex,
 }
 
 static bool _dex_walk_methods(RDContext* ctx, RDReader* r, DEXFormat* dex,
-                              u64 count) {
+                              u64 count, bool skipped) {
     u64 methodidx = 0;
 
     for(u64 i = 0; i < count; i++) {
@@ -219,7 +236,8 @@ static bool _dex_walk_methods(RDContext* ctx, RDReader* r, DEXFormat* dex,
             return false;
         }
 
-        _dex_emit_method(ctx, r, dex, (u32)methodidx, (u32)codeoff.value);
+        _dex_emit_method(ctx, r, dex, (u32)methodidx, (u32)codeoff.value,
+                         skipped);
     }
 
     return true;
@@ -238,7 +256,7 @@ static bool _dex_skip_fields(RDReader* r, u64 count) {
 }
 
 static bool _dex_walk_class_data(RDContext* ctx, RDReader* r, DEXFormat* dex,
-                                 u32 class_data_off) {
+                                 u32 class_data_off, bool skipped) {
     if(class_data_off >= dex->header.file_size) return false;
 
     bool ok = false;
@@ -270,8 +288,8 @@ static bool _dex_walk_class_data(RDContext* ctx, RDReader* r, DEXFormat* dex,
         goto done;
     }
 
-    if(!_dex_walk_methods(ctx, r, dex, ndirect.value)) goto done;
-    if(!_dex_walk_methods(ctx, r, dex, nvirtual.value)) goto done;
+    if(!_dex_walk_methods(ctx, r, dex, ndirect.value, skipped)) goto done;
+    if(!_dex_walk_methods(ctx, r, dex, nvirtual.value, skipped)) goto done;
 
     ok = true;
 
@@ -280,8 +298,20 @@ done:
     return ok;
 }
 
+static bool _dex_class_is_skipped(RDContext* ctx, const char* descriptor) {
+    for(const DEXSkipRule* r = DEX_SKIP_RULES; r->option; r++) {
+        if(strncmp(descriptor, r->prefix, strlen(r->prefix)) != 0) continue;
+
+        bool skip = false;
+        rd_get_loader_option_bool(ctx, r->option, &skip);
+        return skip;
+    }
+
+    return false;
+}
+
 bool dex_walk_classes(RDContext* ctx, RDReader* r, DEXFormat* dex) {
-    u32 walked = 0;
+    u32 walked = 0, skipped = 0;
 
     for(u32 i = 0; i < dex->header.class_defs_size; i++) {
         DEXClassDef cd;
@@ -292,11 +322,22 @@ bool dex_walk_classes(RDContext* ctx, RDReader* r, DEXFormat* dex) {
         }
 
         const char* cls = dex_type_descriptor(r, dex, cd.class_idx);
+
         // legal: a class with no fields and no methods, e.g. an annotation
         if(!cd.class_data_off) continue;
 
-        if(_dex_walk_class_data(ctx, r, dex, cd.class_data_off)) walked++;
+        if(cls && _dex_class_is_skipped(ctx, cls)) {
+            _dex_walk_class_data(ctx, r, dex, cd.class_data_off, true);
+            skipped++;
+            continue;
+        }
+
+        if(_dex_walk_class_data(ctx, r, dex, cd.class_data_off, false))
+            walked++;
     }
+
+    RD_LOG_INFO("walked %" PRIu32 " classes, skipped %" PRIu32, walked,
+                skipped);
 
     return true;
 }

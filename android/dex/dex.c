@@ -171,6 +171,22 @@ static const char* dex_get_processor(const RDLoader* ldr) {
     return "android_dalvik";
 }
 
+static void dex_get_options(RDLoader* ldr, RDLoaderOptionBuilder* b) {
+    RD_UNUSED(ldr);
+
+    // clang-format off
+    rd_loader_options_set_group(b, "Framework");
+    rd_loader_options_add_bool(b, "skip_android", "Skip android.*", NULL, true);
+    rd_loader_options_add_bool(b, "skip_java", "Skip java.* and javax.*", NULL, true);
+ 
+    rd_loader_options_set_group(b, "Bundled libraries");
+    rd_loader_options_add_bool(b, "skip_support", "Skip android.support.*", NULL, true);
+    rd_loader_options_add_bool(b, "skip_androidx", "Skip androidx.*", NULL, true);
+    rd_loader_options_add_bool(b, "skip_google", "Skip com.google.*", NULL, true);
+    rd_loader_options_add_bool(b, "skip_kotlin", "Skip kotlin.*", NULL, true);
+    // clang-format on
+}
+
 const RDLoaderPlugin DEX = {
     .id = "android_dex",
     .create = dex_create,
@@ -179,4 +195,5 @@ const RDLoaderPlugin DEX = {
     .load = dex_load,
     .get_name = dex_get_name,
     .get_processor = dex_get_processor,
+    .get_options = dex_get_options,
 };
