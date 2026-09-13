@@ -1,9 +1,29 @@
 #include "dalvik.h"
 #include "dalvik/formats.h"
 #include "dalvik/opcodes.h"
+#include "dex/map.h"
 #include <stdio.h>
 
 #define DALVIK_MAX_REG 0xFFFF
+
+static void _dalvik_read_map(RDContext* ctx, Dalvik* dalvik) {
+    DEXMap map;
+    if(!dex_read_map(rd_get_reader(ctx), &dalvik->header, &map)) return;
+
+    const DEXMapItem* it = dex_map_find(&map, DEX_TYPE_CALL_SITE_ID_ITEM);
+
+    if(it) {
+        dalvik->call_site_ids_off = it->offset;
+        dalvik->call_site_ids_size = it->size;
+    }
+
+    it = dex_map_find(&map, DEX_TYPE_METHOD_HANDLE_ITEM);
+
+    if(it) {
+        dalvik->method_handles_off = it->offset;
+        dalvik->method_handles_size = it->size;
+    }
+}
 
 static void _dalvik_fill_array_data(RDContext* ctx, RDAddress payload) {
     u16 ident, element_width;
@@ -66,6 +86,7 @@ static void dalvik_setup(RDContext* ctx, RDProcessor* p) {
     RDReader* r = rd_get_reader(ctx);
     rd_reader_seek(r, 0);
     dalvik->is_valid = dex_read_header(r, &dalvik->header) != 0;
+    if(dalvik->is_valid) _dalvik_read_map(ctx, dalvik);
 }
 
 static RDProcessor* dalvik_create(const RDProcessorPlugin* plugin) {
@@ -277,7 +298,7 @@ static bool dalvik_render_operand(RDRenderer* r, const RDInstruction* instr,
 
         case DALVIK_OP_INDEX: {
             rd_renderer_norm(r, dalvik_index_prefix((u8)op->userdata1));
-            rd_renderer_num(r, (i64)op->cnst, 16, 4, RD_NUM_DEFAULT);
+            rd_renderer_num(r, (i64)op->cnst, 16, 4, RD_NUM_NOADDR);
             return true;
         }
 

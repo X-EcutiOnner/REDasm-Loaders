@@ -15,6 +15,6 @@ typedef struct DEXMap {
     u32 count;
 } DEXMap;
 
-bool dex_read_map(RDReader* r, const DEXFormat* dex, DEXMap* map);
+bool dex_read_map(RDReader* r, const DEXHeader* hdr, DEXMap* map);
 bool dex_map_segments(RDContext* ctx, const DEXFormat* dex, const DEXMap* map);
 const DEXMapItem* dex_map_find(const DEXMap* map, u16 type);

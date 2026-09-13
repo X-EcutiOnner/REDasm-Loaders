@@ -50,13 +50,18 @@ static bool _dalvik_index_to_address(const RDContext* ctx, const Dalvik* dalvik,
             stride = DEX_METHOD_ID_SIZE;
             break;
 
-        /*
-         * call_site_ids and method_handles have no header fields.
-         * They were added in 038 and exist only in map_list, which the
-         * processor does not read. Fall back to the raw index.
-         */
         case DALVIK_IDX_CALL_SITE:
+            off = dalvik->call_site_ids_off;
+            size = dalvik->call_site_ids_size;
+            stride = DEX_CALL_SITE_ID_SIZE;
+            break;
+
         case DALVIK_IDX_METHOD_HANDLE:
+            off = dalvik->method_handles_off;
+            size = dalvik->method_handles_size;
+            stride = DEX_METHOD_HANDLE_SIZE;
+            break;
+
         default: return false;
     }
 

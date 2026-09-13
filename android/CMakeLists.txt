@@ -18,6 +18,7 @@ target_sources(${PROJECT_NAME}
         dex/format.c
         dex/map.c
         dex/mutf8.c
+        dex/sections.c
         dex/strings.c
         plugin.c
 )

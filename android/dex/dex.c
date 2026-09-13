@@ -2,6 +2,7 @@
 #include "dex/classes.h"
 #include "dex/format.h"
 #include "dex/map.h"
+#include "dex/sections.h"
 #include "dex/strings.h"
 #include <inttypes.h>
 
@@ -117,8 +118,11 @@ static bool dex_load(RDLoader* ldr, RDContext* ctx) {
         RD_LOG_WARN("DEX signature mismatch (file may be packed or patched)");
 
     DEXMap map;
-    if(!dex_read_map(r, dex, &map)) return false;
+    if(!dex_read_map(r, &dex->header, &map)) return false;
     if(!dex_map_segments(ctx, dex, &map)) return false;
+
+    r = rd_get_reader(ctx);
+    dex_type_sections(ctx, r, dex, &map);
 
     rd_kb_load(ctx, "os/android/dex");
     rd_library_type(ctx, 0, "DEX_HEADER", 0, RD_TYPE_NONE);
@@ -132,7 +136,6 @@ static bool dex_load(RDLoader* ldr, RDContext* ctx) {
     _dex_type_table(ctx, dex->header.class_defs_off, dex->header.class_defs_size, "DEX_CLASS_DEF");
     // clang-format on
 
-    r = rd_get_reader(ctx);
     dex_walk_classes(ctx, r, dex);
     _dex_name_strings(ctx, r, dex);
     _dex_name_protos(ctx, r, dex);

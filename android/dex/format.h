@@ -8,6 +8,8 @@
 #define DEX_FIELD_ID_SIZE 8
 #define DEX_METHOD_ID_SIZE 8
 #define DEX_CLASS_DEF_SIZE 32
+#define DEX_CALL_SITE_ID_SIZE 4
+#define DEX_METHOD_HANDLE_SIZE 8
 
 typedef struct DEXHeader {
     u8 magic[8];

@@ -52,16 +52,16 @@ const DEXMapItem* dex_map_find(const DEXMap* map, u16 type) {
     return NULL;
 }
 
-bool dex_read_map(RDReader* r, const DEXFormat* dex, DEXMap* map) {
+bool dex_read_map(RDReader* r, const DEXHeader* hdr, DEXMap* map) {
     map->count = 0;
 
-    if(!dex->header.map_off) {
+    if(!hdr->map_off) {
         RD_LOG_FAIL("no map_list (map_off is zero)");
         return false;
     }
 
     rd_reader_save(r);
-    rd_reader_seek(r, dex->header.map_off);
+    rd_reader_seek(r, hdr->map_off);
 
     u32 count = 0;
     if(!rd_reader_read_le32(r, &count)) goto fail;
@@ -80,8 +80,7 @@ bool dex_read_map(RDReader* r, const DEXFormat* dex, DEXMap* map) {
     // the table itself must fit inside the file
     u64 tablesize = (u64)count * DEX_MAP_ITEM_SIZE;
 
-    if((u64)dex->header.map_off + sizeof(u32) + tablesize >
-       dex->header.file_size) {
+    if((u64)hdr->map_off + sizeof(u32) + tablesize > hdr->file_size) {
         RD_LOG_FAIL("map_list extends past file_size");
         goto fail;
     }
@@ -99,7 +98,7 @@ bool dex_read_map(RDReader* r, const DEXFormat* dex, DEXMap* map) {
             goto fail;
         }
 
-        if(it->offset >= dex->header.file_size) {
+        if(it->offset >= hdr->file_size) {
             RD_LOG_FAIL("map entry %" PRIu32 " (type %04" PRIx16
                         ") offset %" PRIu32 " is out of bounds",
                         i, it->type, it->offset);
