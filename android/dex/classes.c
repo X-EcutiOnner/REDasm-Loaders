@@ -303,7 +303,7 @@ static bool _dex_class_is_skipped(RDContext* ctx, const char* descriptor) {
         if(strncmp(descriptor, r->prefix, strlen(r->prefix)) != 0) continue;
 
         bool skip = false;
-        rd_get_loader_option_bool(ctx, r->option, &skip);
+        rd_loader_options_get_bool(ctx, r->option, &skip);
         return skip;
     }
 
