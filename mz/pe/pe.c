@@ -11,6 +11,8 @@
 #include <inttypes.h>
 #include <string.h>
 
+#define PE_OPT_WIDE_SCAN "wide_scan"
+
 static bool pe_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     PEFormat* pe = (PEFormat*)ldr;
     if(!mz_read_dos_header(req->input, &pe->dosheader)) return false;
@@ -198,7 +200,11 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
         default: break;
     }
 
-    if(pe->classification.is_unicode) rd_set_scan_char16(ctx, true);
+    bool scan_wide = false;
+    if(pe->classification.is_unicode ||
+       (rd_loader_options_get_bool(ctx, PE_OPT_WIDE_SCAN, &scan_wide) &&
+        scan_wide))
+        rd_set_scan_char16(ctx, true);
 
     pe_classify_print(&pe->classification);
 
@@ -245,11 +251,19 @@ static const char* pe_get_name(const RDLoader* ldr) {
     return rd_format("Portable Executable (%s)", pe_kind);
 }
 
+static void pe_get_options(RDLoader* ldr, RDLoaderOptionBuilder* b) {
+    RD_UNUSED(ldr);
+
+    rd_loader_options_add_bool(b, PE_OPT_WIDE_SCAN, "Scan wide strings",
+                               "Automatic if unset", false);
+}
+
 const RDLoaderPlugin PE_LOADER = {
     .id = "win_pe",
     .instance_size = sizeof(PEFormat),
     .get_name = pe_get_name,
     .get_processor = pe_get_processor,
+    .get_options = pe_get_options,
     .destroy = pe_destroy,
     .parse = pe_parse,
     .load = pe_load,
