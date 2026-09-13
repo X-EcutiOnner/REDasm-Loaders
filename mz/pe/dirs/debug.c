@@ -33,7 +33,7 @@ static bool _pe_read_cv_info_pdb20(RDReader* r, CvInfoPdb20* pdb) {
 
 static bool _pe_read_cv_info_pdb70(RDReader* r, CvInfoPdb70* pdb) {
     rd_reader_read_le32(r, &pdb->CvSignature);
-    rd_reader_read(r, pdb->Guid, sizeof(pdb->Guid));
+    rd_reader_read_exact(r, pdb->Guid, sizeof(pdb->Guid));
     rd_reader_read_le32(r, &pdb->Age);
 
     return !rd_reader_has_error(r);

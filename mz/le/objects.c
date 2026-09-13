@@ -42,7 +42,7 @@ static bool _le_read_object(RDReader* r, LEObject* v) {
     rd_reader_read_le32(r, &v->flags);
     rd_reader_read_le32(r, &v->mapidx);
     rd_reader_read_le32(r, &v->mapsize);
-    rd_reader_read(r, &v->name, sizeof(v->name));
+    rd_reader_read_exact(r, &v->name, sizeof(v->name));
 
     return !rd_reader_has_error(r);
 }

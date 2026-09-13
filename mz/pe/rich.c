@@ -45,7 +45,7 @@ static bool _pe_read_richheader(RDContext* ctx, const PEFormat* pe,
 
     rd_reader_seek(r, 0);
 
-    if(!rd_reader_read(r, p->buffer, n_bytes)) return false;
+    if(!rd_reader_read_exact(r, p->buffer, n_bytes)) return false;
 
     for(usize i = 0; i < n; i++) {
         if(p->buffer[i] == PE_RICH_MARKER) {

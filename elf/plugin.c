@@ -213,7 +213,7 @@ static void _elf_load_symbols(ELFFormat* elf, RDContext* ctx) {
 
 static bool elf_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     ELFFormat* elf = (ELFFormat*)ldr;
-    rd_reader_read(req->input, &elf->ident, sizeof(elf->ident));
+    rd_reader_read_exact(req->input, &elf->ident, sizeof(elf->ident));
     if(rd_reader_has_error(req->input)) return false;
 
     if(elf->ident.ei_magic[0] != ELF_MAG0 ||

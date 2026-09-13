@@ -5,7 +5,7 @@ static char tap_filename_buf[TAP_FILENAME_LENGTH + 1] = {0};
 
 bool tap_read_block_header(RDReader* r, TapBlockHeader* v) {
     rd_reader_read_byte(r, &v->type);
-    rd_reader_read(r, v->filename, sizeof(v->filename));
+    rd_reader_read_exact(r, v->filename, sizeof(v->filename));
     rd_reader_read_le16(r, &v->data_length);
     rd_reader_read_le16(r, &v->param1);
     rd_reader_read_le16(r, &v->param2);

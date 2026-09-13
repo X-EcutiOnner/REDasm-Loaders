@@ -10,7 +10,7 @@
 
 bool xbe_read_header(RDReader* r, XBEImageHeader* v) {
     rd_reader_read_le32(r, &v->Magic);
-    rd_reader_read(r, &v->Signature, sizeof(v->Signature));
+    rd_reader_read_exact(r, &v->Signature, sizeof(v->Signature));
     rd_reader_read_le32(r, &v->ImageBase);
     rd_reader_read_le32(r, &v->SizeOfHeaders);
     rd_reader_read_le32(r, &v->SizeOfImage);
@@ -54,7 +54,7 @@ bool xbe_read_section(RDReader* r, XBESectionHeader* v) {
     rd_reader_read_le32(r, &v->SectionReferenceCount);
     rd_reader_read_le32(r, &v->HeadSharedPageReferenceCountAddress);
     rd_reader_read_le32(r, &v->TailSharedPageReferenceCountAddress);
-    rd_reader_read(r, &v->SectionDigest, sizeof(v->SectionDigest));
+    rd_reader_read_exact(r, &v->SectionDigest, sizeof(v->SectionDigest));
 
     return !rd_reader_has_error(r);
 }
@@ -63,19 +63,20 @@ bool xbe_read_certificate(RDReader* r, XBECertificate* v) {
     rd_reader_read_le32(r, &v->Size);
     rd_reader_read_le32(r, &v->Timestamp);
     rd_reader_read_le32(r, &v->TitleId);
-    rd_reader_read(r, &v->TitleName, sizeof(v->TitleName));
-    rd_reader_read(r, &v->AlternateTitleIds, sizeof(v->AlternateTitleIds));
+    rd_reader_read_exact(r, &v->TitleName, sizeof(v->TitleName));
+    rd_reader_read_exact(r, &v->AlternateTitleIds,
+                         sizeof(v->AlternateTitleIds));
     rd_reader_read_le32(r, &v->MediaTypes);
     rd_reader_read_le32(r, &v->GameRegion);
     rd_reader_read_le32(r, &v->GameRating);
     rd_reader_read_le32(r, &v->DiskNumber);
     rd_reader_read_le32(r, &v->Version);
-    rd_reader_read(r, &v->LanKey, sizeof(v->LanKey));
-    rd_reader_read(r, &v->SignatureKey, sizeof(v->SignatureKey));
+    rd_reader_read_exact(r, &v->LanKey, sizeof(v->LanKey));
+    rd_reader_read_exact(r, &v->SignatureKey, sizeof(v->SignatureKey));
 
     if(v->Version > 1) {
-        rd_reader_read(r, &v->AlternateSignatureKeys,
-                       sizeof(v->AlternateSignatureKeys));
+        rd_reader_read_exact(r, &v->AlternateSignatureKeys,
+                             sizeof(v->AlternateSignatureKeys));
     }
 
     return !rd_reader_has_error(r);

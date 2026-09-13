@@ -166,7 +166,7 @@ bool z80_read_header_ext(RDReader* r, Z80HeaderExt* v) {
     rd_reader_read_byte(r, &v->rom_paged);
     rd_reader_read_byte(r, &v->flags);
     rd_reader_read_byte(r, &v->last_out_fffd);
-    rd_reader_read(r, &v->audio_regs, sizeof(v->audio_regs));
+    rd_reader_read_exact(r, &v->audio_regs, sizeof(v->audio_regs));
 
     if(v->length == Z80_HEADER_LEN_V3) {
         rd_reader_read_le16(r, &v->v3.t_state_l);
@@ -176,8 +176,8 @@ bool z80_read_header_ext(RDReader* r, Z80HeaderExt* v) {
         rd_reader_read_byte(r, &v->v3.multface_rom_paged);
         rd_reader_read_byte(r, &v->v3.is_rom_l);
         rd_reader_read_byte(r, &v->v3.is_rom_h);
-        rd_reader_read(r, &v->v3.joy_mapping, sizeof(v->v3.joy_mapping));
-        rd_reader_read(r, &v->v3.kbd_mapping, sizeof(v->v3.kbd_mapping));
+        rd_reader_read_exact(r, &v->v3.joy_mapping, sizeof(v->v3.joy_mapping));
+        rd_reader_read_exact(r, &v->v3.kbd_mapping, sizeof(v->v3.kbd_mapping));
         rd_reader_read_byte(r, &v->v3.mgt_type);
         rd_reader_read_byte(r, &v->v3.disciple_button_state);
         rd_reader_read_byte(r, &v->v3.disciple_flags);

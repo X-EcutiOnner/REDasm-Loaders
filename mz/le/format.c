@@ -91,7 +91,7 @@ bool le_read_header(RDReader* r, LEHeader* v) {
     rd_reader_read_le32(r, &v->num_inst_demand);
     rd_reader_read_le32(r, &v->heapsize);
     rd_reader_read_le32(r, &v->stacksize);
-    rd_reader_read(r, &v->reserved, sizeof(v->reserved));
+    rd_reader_read_exact(r, &v->reserved, sizeof(v->reserved));
 
     return !rd_reader_has_error(r);
 }

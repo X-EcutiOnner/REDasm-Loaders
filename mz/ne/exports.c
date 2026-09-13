@@ -24,7 +24,7 @@ void ne_load_exports(NEFormat* ne, RDContext* ctx,
             name = rd_alloc(name_len);
         }
 
-        rd_reader_read(r, name, len);
+        rd_reader_read_exact(r, name, len);
         name[len] = 0;
 
         u16 ordinal;

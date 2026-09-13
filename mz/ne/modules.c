@@ -29,7 +29,7 @@ NEModuleSlice ne_moduleslice_create(NEFormat* ne, RDContext* ctx) {
         char* name = rd_alloc(len + 1);
         if(!name) continue;
 
-        rd_reader_read(r, name, len);
+        rd_reader_read_exact(r, name, len);
         name[len] = '\0';
 
         if(rd_reader_has_error(r)) {

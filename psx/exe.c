@@ -22,7 +22,7 @@ typedef struct PsxExeHeader {
 static bool psx_parse(RDLoader* ldr, const RDLoaderRequest* req) {
     PsxExeHeader* h = (PsxExeHeader*)ldr;
 
-    rd_reader_read(req->input, h->id, sizeof(h->id));
+    rd_reader_read_exact(req->input, h->id, sizeof(h->id));
     rd_reader_read_le32(req->input, &h->text);
     rd_reader_read_le32(req->input, &h->data);
     rd_reader_read_le32(req->input, &h->pc0);

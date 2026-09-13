@@ -36,7 +36,7 @@ void pe_set_bits(PEFormat* pe) {
 }
 
 bool pe_read_section_header(RDReader* r, PESectionHeader* s) {
-    rd_reader_read(r, &s->Name, PE_SIZE_OF_SHORT_NAME);
+    rd_reader_read_exact(r, &s->Name, PE_SIZE_OF_SHORT_NAME);
     rd_reader_read_le32(r, &s->VirtualSize);
     rd_reader_read_le32(r, &s->VirtualAddress);
     rd_reader_read_le32(r, &s->SizeOfRawData);

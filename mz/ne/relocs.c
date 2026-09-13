@@ -88,7 +88,7 @@ void ne_load_relocs(NEFormat* ne, RDContext* ctx, u32 file_off, u16 seg_idx,
         bool additive = !!(flags_and_target & NE_RELOC_FLAG_ADDITIVE);
 
         u8 tb[4];
-        rd_reader_read(r, tb, 4);
+        rd_reader_read_exact(r, tb, 4);
         if(rd_reader_has_error(r)) return;
 
         RDAddress from_addr = seg_base + src_chain_offset;
@@ -190,7 +190,7 @@ void ne_load_relocs(NEFormat* ne, RDContext* ctx, u32 file_off, u16 seg_idx,
                     proc_name = rd_alloc(proc_name_len);
                 }
 
-                rd_reader_read(r, proc_name, len);
+                rd_reader_read_exact(r, proc_name, len);
                 proc_name[len] = 0;
                 if(rd_reader_has_error(r)) break;
 

@@ -109,7 +109,7 @@ static void _le_read_name_table(const LEFormat* le, RDReader* r, u64 table_off,
         if(rd_reader_has_error(r) || len == 0) break; // end of table
 
         char name[256];
-        rd_reader_read(r, name, len);
+        rd_reader_read_exact(r, name, len);
         name[len] = '\0';
 
         u16 ordinal;

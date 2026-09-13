@@ -14,10 +14,10 @@ static bool _pe_read_runtime_function_entry(RDReader* r,
 }
 
 static bool _pe_read_unwindinfo_header(RDReader* r, PEUnwindInfoHeader* v) {
-    rd_reader_read(r, &v->VersionFlags, 1);
-    rd_reader_read(r, &v->SizeOfProlog, 1);
-    rd_reader_read(r, &v->CountOfCodes, 1);
-    rd_reader_read(r, &v->FrameRegisterOffset, 1);
+    rd_reader_read_byte(r, &v->VersionFlags);
+    rd_reader_read_byte(r, &v->SizeOfProlog);
+    rd_reader_read_byte(r, &v->CountOfCodes);
+    rd_reader_read_byte(r, &v->FrameRegisterOffset);
     return !rd_reader_has_error(r);
 }
 
