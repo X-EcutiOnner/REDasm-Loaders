@@ -16,13 +16,16 @@ typedef struct PEDebugDirectory {
 typedef struct CvInfoPdb20 {
     u32 CvSignature;
     u32 Offset;
-    u32 Signature;
+    u32 TimeStamp;
     u32 Age;
 } CvInfoPdb20;
 
 typedef struct CvInfoPdb70 {
     u32 CvSignature;
-    u8 Guid[16];
+    u32 GuidData1;   // Little-Endian (4 byte)
+    u16 GuidData2;   // Little-Endian (2 byte)
+    u16 GuidData3;   // Little-Endian (2 byte)
+    u8 GuidData4[8]; // Big-Endian (8 byte)
     u32 Age;
 } CvInfoPdb70;
 

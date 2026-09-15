@@ -25,7 +25,7 @@
 static bool _pe_read_cv_info_pdb20(RDReader* r, CvInfoPdb20* pdb) {
     rd_reader_read_le32(r, &pdb->CvSignature);
     rd_reader_read_le32(r, &pdb->Offset);
-    rd_reader_read_le32(r, &pdb->Signature);
+    rd_reader_read_le32(r, &pdb->TimeStamp);
     rd_reader_read_le32(r, &pdb->Age);
 
     return !rd_reader_has_error(r);
@@ -33,7 +33,10 @@ static bool _pe_read_cv_info_pdb20(RDReader* r, CvInfoPdb20* pdb) {
 
 static bool _pe_read_cv_info_pdb70(RDReader* r, CvInfoPdb70* pdb) {
     rd_reader_read_le32(r, &pdb->CvSignature);
-    rd_reader_read_exact(r, pdb->Guid, sizeof(pdb->Guid));
+    rd_reader_read_le32(r, &pdb->GuidData1);
+    rd_reader_read_le16(r, &pdb->GuidData2);
+    rd_reader_read_le16(r, &pdb->GuidData3);
+    rd_reader_read_exact(r, pdb->GuidData4, sizeof(pdb->GuidData4));
     rd_reader_read_le32(r, &pdb->Age);
 
     return !rd_reader_has_error(r);
@@ -76,7 +79,8 @@ static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
         if(pdbname) {
             rd_library_type(ctx, pdbfilename_va, "char", n + 1, RD_TYPE_NONE);
             rd_library_name(ctx, pdbfilename_va, "__pdb_filename");
-            RD_LOG_INFO("PDB 2.0: %s", pdbname);
+            RD_LOG_INFO("PDB 2.0: %s (Server Key: %08X%X)", pdbname,
+                        pdb.TimeStamp, pdb.Age);
         }
     }
     else if(sig == PE_CVINFO_PDB70_SIGNATURE) {
@@ -92,7 +96,14 @@ static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
             RDAddress pdbfilename_va = (RDAddress)rd_reader_tell(r);
             rd_library_type(ctx, pdbfilename_va, "char", n + 1, RD_TYPE_NONE);
             rd_library_name(ctx, pdbfilename_va, "__pdb_filename");
-            RD_LOG_INFO("PDB 7.0: %s", pdb_filename);
+
+            RD_LOG_INFO("PDB 7.0: %s (Server Key: "
+                        "%08X%04X%04X%02X%02X%02X%02X%02X%02X%02X%02X%X)",
+                        pdb_filename, pdb.GuidData1, pdb.GuidData2,
+                        pdb.GuidData3, pdb.GuidData4[0], pdb.GuidData4[1],
+                        pdb.GuidData4[2], pdb.GuidData4[3], pdb.GuidData4[4],
+                        pdb.GuidData4[5], pdb.GuidData4[6], pdb.GuidData4[7],
+                        pdb.Age);
         }
     }
 }
