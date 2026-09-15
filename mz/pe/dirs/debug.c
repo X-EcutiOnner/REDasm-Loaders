@@ -70,10 +70,8 @@ static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
 
         rd_library_type(ctx, dbg_va, "CV_INFO_PDB20", 0, RD_TYPE_NONE);
 
-        RDAddress pdbfilename_va = dbg_va + rd_reader_tell(r);
+        RDAddress pdbfilename_va = (RDAddress)rd_reader_tell(r);
         usize n;
-        rd_reader_seek(r, pdbfilename_va);
-
         const char* pdbname = rd_reader_peek_str(r, &n);
 
         if(pdbname) {
