@@ -88,20 +88,32 @@ static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
         rd_library_type(ctx, dbg_va, "CV_INFO_PDB70", 0, RD_TYPE_NONE);
 
         usize n;
-        const char* pdb_filename = rd_reader_peek_str(r, &n);
+        const char* pdb_filepath = rd_reader_peek_str(r, &n);
 
-        if(pdb_filename) {
+        if(pdb_filepath) {
             RDAddress pdbfilename_va = (RDAddress)rd_reader_tell(r);
             rd_library_type(ctx, pdbfilename_va, "char", n + 1, RD_TYPE_NONE);
             rd_library_name(ctx, pdbfilename_va, "__pdb_filename");
 
-            RD_LOG_INFO("PDB 7.0: %s (Server Key: "
-                        "%08X%04X%04X%02X%02X%02X%02X%02X%02X%02X%02X%X)",
-                        pdb_filename, pdb.GuidData1, pdb.GuidData2,
-                        pdb.GuidData3, pdb.GuidData4[0], pdb.GuidData4[1],
-                        pdb.GuidData4[2], pdb.GuidData4[3], pdb.GuidData4[4],
-                        pdb.GuidData4[5], pdb.GuidData4[6], pdb.GuidData4[7],
-                        pdb.Age);
+            const char* pdb_guid =
+                rd_format("%08X%04X%04X%02X%02X%02X%02X%02X%02X%02X%02X",
+                          pdb.GuidData1, pdb.GuidData2, pdb.GuidData3,
+                          pdb.GuidData4[0], pdb.GuidData4[1], pdb.GuidData4[2],
+                          pdb.GuidData4[3], pdb.GuidData4[4], pdb.GuidData4[5],
+                          pdb.GuidData4[6], pdb.GuidData4[7]);
+
+            RD_LOG_INFO("PDB 7.0: %s (Server Key: %s%X)", pdb_filepath,
+                        pdb_guid, pdb.Age);
+
+            const RDCommandValue ARGS[] = {
+                {RD_CMDARG_STRING, .s = pdb_filepath},
+                {RD_CMDARG_STRING, .s = pdb_guid},
+                {RD_CMDARG_UINT, .u = pdb.Age},
+                {RD_CMDARG_UINT, .u = pe->imagebase},
+                {RD_CMDARG_VOID},
+            };
+
+            rd_command_run(ctx, "pdb_load", ARGS);
         }
     }
 }
