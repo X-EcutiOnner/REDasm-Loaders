@@ -109,7 +109,6 @@ static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
                 {RD_CMDARG_STRING, .s = pdb_filepath},
                 {RD_CMDARG_STRING, .s = pdb_guid},
                 {RD_CMDARG_UINT, .u = pdb.Age},
-                {RD_CMDARG_UINT, .u = pe->imagebase},
                 {RD_CMDARG_VOID},
             };
 
