@@ -125,7 +125,7 @@ bool pe_read_exports_dir(RDContext* ctx, PEFormat* pe) {
         }
 
         const RDSegment* seg = rd_find_segment(ctx, entry_va);
-        bool is_func = seg && (seg->perm & RD_SP_X) &&
+        bool is_func = seg && rd_segment_has_perm(seg, RD_SP_X) &&
                        !_pe_is_linker_boundary(export_name);
 
         bool is_fwd = entry_rva >= d.VirtualAddress &&

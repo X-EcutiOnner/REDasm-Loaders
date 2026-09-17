@@ -44,7 +44,7 @@ void ne_load_exports(NEFormat* ne, RDContext* ctx,
         const RDSegment* seg = rd_find_segment(ctx, addr);
         if(!seg) continue;
 
-        if(seg->perm & RD_SP_X) rd_set_function(ctx, addr);
+        if(rd_segment_get_perm(seg) & RD_SP_X) rd_set_function(ctx, addr);
 
         rd_library_name(ctx, addr, name);
         rd_set_external(ctx, addr, NULL, RD_EXT_EXPORTED);
