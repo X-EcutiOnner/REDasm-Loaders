@@ -114,6 +114,8 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
     rd_kb_load(ctx, "pe/types");
 
     PEFormat* pe = (PEFormat*)ldr;
+    rd_set_base_address(ctx, pe->imagebase);
+
     pe_set_bits(pe);
     pe_parse_richheader(ctx, pe);
 
@@ -136,8 +138,6 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
         char section_name[PE_SIZE_OF_SHORT_NAME + 1] = {0};
         memcpy(section_name, s->Name, PE_SIZE_OF_SHORT_NAME);
 
-        RDAddress addr = pe->imagebase + s->VirtualAddress;
-
         u32 vsize = s->VirtualSize;
         if(!vsize) vsize = s->SizeOfRawData;
 
@@ -146,10 +146,10 @@ static bool pe_load(RDLoader* ldr, RDContext* ctx) {
             if(diff) vsize += pe->section_align - diff;
         }
 
-        rd_map_segment_n(ctx, section_name, addr, vsize, perm);
+        rd_map_segment_n(ctx, section_name, s->VirtualAddress, vsize, perm);
 
         if(s->PointerToRawData) {
-            rd_map_input_n(ctx, s->PointerToRawData, addr,
+            rd_map_input_n(ctx, s->PointerToRawData, s->VirtualAddress,
                            s->VirtualSize < s->SizeOfRawData
                                ? s->VirtualSize
                                : s->SizeOfRawData);
