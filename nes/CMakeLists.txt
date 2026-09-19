@@ -12,8 +12,8 @@ target_sources(${PROJECT_NAME}
     PRIVATE
         common.c
         ines.c
+        module.c
         nrom.c
-        plugin.c
 )
 
 target_include_directories(${PROJECT_NAME}
