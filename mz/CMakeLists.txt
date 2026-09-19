@@ -41,7 +41,7 @@ target_sources(${PROJECT_NAME}
         pe/pe.c
         pe/rich.c
         hooks.c
-        plugin.c
+        module.c
 )
 
 target_include_directories(${PROJECT_NAME}

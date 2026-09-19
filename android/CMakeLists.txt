@@ -20,7 +20,7 @@ target_sources(${PROJECT_NAME}
         dex/mutf8.c
         dex/sections.c
         dex/strings.c
-        plugin.c
+        module.c
 )
 
 target_include_directories(${PROJECT_NAME}

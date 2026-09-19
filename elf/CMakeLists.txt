@@ -11,7 +11,7 @@ add_library(${PROJECT_NAME} SHARED)
 target_sources(${PROJECT_NAME} 
     PRIVATE
         format.c
-        plugin.c
+        module.c
 )
 
 target_include_directories(${PROJECT_NAME}

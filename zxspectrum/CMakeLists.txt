@@ -18,7 +18,7 @@ target_sources(${PROJECT_NAME}
         z80/z80_format.c
         basic.c
         common.c
-        plugin.c
+        module.c
 )
 
 target_include_directories(${PROJECT_NAME}
