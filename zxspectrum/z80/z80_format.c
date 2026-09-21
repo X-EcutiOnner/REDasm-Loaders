@@ -219,14 +219,14 @@ bool z80_load_v2_v3(RDContext* ctx, RDReader* r, Z80Format* z80) {
 
         u8 page;
         if(!rd_reader_read_byte(r, &page)) {
-            RD_LOG_WARN("z80: truncated block header at end of file");
+            RD_LOG_WARN("truncated block header at end of file");
             break;
         }
 
         RDAddress addr;
         if(!_z80_48k_page_address(page, &addr)) {
-            RD_LOG_WARN("z80: unexpected page number %d (not valid for 48k "
-                        "mode), skipping block",
+            RD_LOG_WARN("unexpected page number %d (not valid for 48k mode), "
+                        "skipping block",
                         page);
 
             usize skip = (length == 0xFFFF) ? 16384 : length;
@@ -266,7 +266,7 @@ bool z80_load_v2_v3(RDContext* ctx, RDReader* r, Z80Format* z80) {
     for(usize i = 0; i < rd_count_of(Z80_48K_REQUIRED_PAGES); i++) {
         u8 p = Z80_48K_REQUIRED_PAGES[i];
         if(!page_seen[p])
-            RD_LOG_WARN("z80: required page %d never appeared -- file may be "
+            RD_LOG_WARN("required page %d never appeared -- file may be "
                         "incomplete",
                         p);
     }

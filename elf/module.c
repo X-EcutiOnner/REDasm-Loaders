@@ -14,7 +14,7 @@ static const char* _elf_detect_xtensa_processor(u64 entry) {
     if(entry >= 0x40020000 && entry < 0x40070000)
         return "xtensa_esp32s2"; // RAM_IRAM_START
 
-    RD_LOG_WARN("xtensa: could not identify chip from entry point %" PRIx64
+    RD_LOG_WARN("could not identify chip from entry point %" PRIx64
                 ", defaulting to esp32",
                 entry);
 
