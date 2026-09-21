@@ -2,61 +2,83 @@
 #include <string.h>
 
 static bool _pe_read_config_dir32(RDReader* r, PELoadConfigDirectory32* v) {
+    *v = (PELoadConfigDirectory32){0}; // keep missing fields = 0
+
     rd_reader_read_le32(r, &v->Size);
-    rd_reader_read_le32(r, &v->TimeDateStamp);
-    rd_reader_read_le16(r, &v->MajorVersion);
-    rd_reader_read_le16(r, &v->MinorVersion);
-    rd_reader_read_le32(r, &v->GlobalFlagsClear);
-    rd_reader_read_le32(r, &v->GlobalFlagsSet);
-    rd_reader_read_le32(r, &v->CriticalSectionDefaultTimeout);
-    rd_reader_read_le32(r, &v->DeCommitFreeBlockThreshold);
-    rd_reader_read_le32(r, &v->DeCommitTotalFreeThreshold);
-    rd_reader_read_le32(r, &v->LockPrefixTable);
-    rd_reader_read_le32(r, &v->MaximumAllocationSize);
-    rd_reader_read_le32(r, &v->VirtualMemoryThreshold);
-    rd_reader_read_le32(r, &v->ProcessHeapFlags);
-    rd_reader_read_le32(r, &v->ProcessAffinityMask);
-    rd_reader_read_le16(r, &v->CSDVersion);
-    rd_reader_read_le16(r, &v->Reserved1);
-    rd_reader_read_le32(r, &v->EditList);
-    rd_reader_read_le32(r, &v->SecurityCookie);
-    rd_reader_read_le32(r, &v->SEHandlerTable);
-    rd_reader_read_le32(r, &v->SEHandlerCount);
-    rd_reader_read_le32(r, &v->GuardCFCheckFunctionPointer);
-    rd_reader_read_le32(r, &v->Reserved2);
-    rd_reader_read_le32(r, &v->GuardCFFunctionTable);
-    rd_reader_read_le32(r, &v->GuardCFFunctionCount);
-    rd_reader_read_le32(r, &v->GuardFlags);
+    if(rd_reader_has_error(r) || v->Size < 4) return false;
+
+    if(v->Size >= 64) {
+        rd_reader_read_le32(r, &v->TimeDateStamp);
+        rd_reader_read_le16(r, &v->MajorVersion);
+        rd_reader_read_le16(r, &v->MinorVersion);
+        rd_reader_read_le32(r, &v->GlobalFlagsClear);
+        rd_reader_read_le32(r, &v->GlobalFlagsSet);
+        rd_reader_read_le32(r, &v->CriticalSectionDefaultTimeout);
+        rd_reader_read_le32(r, &v->DeCommitFreeBlockThreshold);
+        rd_reader_read_le32(r, &v->DeCommitTotalFreeThreshold);
+        rd_reader_read_le32(r, &v->LockPrefixTable);
+        rd_reader_read_le32(r, &v->MaximumAllocationSize);
+        rd_reader_read_le32(r, &v->VirtualMemoryThreshold);
+        rd_reader_read_le32(r, &v->ProcessHeapFlags);
+        rd_reader_read_le32(r, &v->ProcessAffinityMask);
+        rd_reader_read_le16(r, &v->CSDVersion);
+        rd_reader_read_le16(r, &v->Reserved1);
+        rd_reader_read_le32(r, &v->EditList);
+        rd_reader_read_le32(r, &v->SecurityCookie);
+    }
+
+    if(v->Size >= 72) {
+        rd_reader_read_le32(r, &v->SEHandlerTable);
+        rd_reader_read_le32(r, &v->SEHandlerCount);
+    }
+
+    if(v->Size >= 92) {
+        rd_reader_read_le32(r, &v->GuardCFCheckFunctionPointer);
+        rd_reader_read_le32(r, &v->Reserved2);
+        rd_reader_read_le32(r, &v->GuardCFFunctionTable);
+        rd_reader_read_le32(r, &v->GuardCFFunctionCount);
+        rd_reader_read_le32(r, &v->GuardFlags);
+    }
 
     return !rd_reader_has_error(r);
 }
 
 static bool _pe_read_config_dir64(RDReader* r, PELoadConfigDirectory64* v) {
+    *v = (PELoadConfigDirectory64){0}; // keep missing fields = 0
+
     rd_reader_read_le32(r, &v->Size);
-    rd_reader_read_le32(r, &v->TimeDateStamp);
-    rd_reader_read_le16(r, &v->MajorVersion);
-    rd_reader_read_le16(r, &v->MinorVersion);
-    rd_reader_read_le32(r, &v->GlobalFlagsClear);
-    rd_reader_read_le32(r, &v->GlobalFlagsSet);
-    rd_reader_read_le32(r, &v->CriticalSectionDefaultTimeout);
-    rd_reader_read_le64(r, &v->DeCommitFreeBlockThreshold);
-    rd_reader_read_le64(r, &v->DeCommitTotalFreeThreshold);
-    rd_reader_read_le64(r, &v->LockPrefixTable);
-    rd_reader_read_le64(r, &v->MaximumAllocationSize);
-    rd_reader_read_le64(r, &v->VirtualMemoryThreshold);
-    rd_reader_read_le64(r, &v->ProcessAffinityMask);
-    rd_reader_read_le64(r, &v->ProcessHeapFlags);
-    rd_reader_read_le16(r, &v->CSDVersion);
-    rd_reader_read_le16(r, &v->Reserved1);
-    rd_reader_read_le64(r, &v->EditList);
-    rd_reader_read_le64(r, &v->SecurityCookie);
-    rd_reader_read_le64(r, &v->SEHandlerTable);
-    rd_reader_read_le64(r, &v->SEHandlerCount);
-    rd_reader_read_le64(r, &v->GuardCFCheckFunctionPointer);
-    rd_reader_read_le64(r, &v->Reserved2);
-    rd_reader_read_le64(r, &v->GuardCFFunctionTable);
-    rd_reader_read_le64(r, &v->GuardCFFunctionCount);
-    rd_reader_read_le32(r, &v->GuardFlags);
+    if(rd_reader_has_error(r) || v->Size < 4) return false;
+
+    if(v->Size >= 112) {
+        rd_reader_read_le32(r, &v->TimeDateStamp);
+        rd_reader_read_le16(r, &v->MajorVersion);
+        rd_reader_read_le16(r, &v->MinorVersion);
+        rd_reader_read_le32(r, &v->GlobalFlagsClear);
+        rd_reader_read_le32(r, &v->GlobalFlagsSet);
+        rd_reader_read_le32(r, &v->CriticalSectionDefaultTimeout);
+        rd_reader_read_le64(r, &v->DeCommitFreeBlockThreshold);
+        rd_reader_read_le64(r, &v->DeCommitTotalFreeThreshold);
+        rd_reader_read_le64(r, &v->LockPrefixTable);
+        rd_reader_read_le64(r, &v->MaximumAllocationSize);
+        rd_reader_read_le64(r, &v->VirtualMemoryThreshold);
+        rd_reader_read_le64(r, &v->ProcessAffinityMask);
+        rd_reader_read_le32(r, &v->ProcessHeapFlags);
+        rd_reader_read_le16(r, &v->CSDVersion);
+        rd_reader_read_le16(r, &v->Reserved1);
+        rd_reader_read_le64(r, &v->EditList);
+        rd_reader_read_le64(r, &v->SecurityCookie);
+    }
+
+    if(v->Size >= 148) {
+        rd_reader_read_le64(r, &v->SEHandlerTable);
+        rd_reader_read_le64(r, &v->SEHandlerCount);
+        rd_reader_read_le64(r, &v->GuardCFCheckFunctionPointer);
+        rd_reader_read_le64(r, &v->Reserved2);
+        rd_reader_read_le64(r, &v->GuardCFFunctionTable);
+        rd_reader_read_le64(r, &v->GuardCFFunctionCount);
+    }
+
+    if(v->Size >= 152) rd_reader_read_le32(r, &v->GuardFlags);
 
     return !rd_reader_has_error(r);
 }
