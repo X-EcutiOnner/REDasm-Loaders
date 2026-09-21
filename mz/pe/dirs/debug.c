@@ -105,14 +105,7 @@ static void _pe_read_codeview(RDContext* ctx, PEFormat* pe, RDReader* r,
             RD_LOG_INFO("PDB 7.0: %s (Server Key: %s%X)", pdb_filepath,
                         pdb_guid, pdb.Age);
 
-            const RDCommandValue ARGS[] = {
-                {RD_CMDARG_STRING, .s = pdb_filepath},
-                {RD_CMDARG_STRING, .s = pdb_guid},
-                {RD_CMDARG_UINT, .u = pdb.Age},
-                {RD_CMDARG_VOID},
-            };
-
-            rd_command_run(ctx, "pdb_load", ARGS);
+            rd_analyzer_enable(ctx, "pdb_debuginfo");
         }
     }
 }
