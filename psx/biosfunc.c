@@ -1,14 +1,14 @@
 #include "biosfunc.h"
 
 static const char* psx_bios_lookup(RDContext* ctx, u8 sel, u8 fn) {
-    const RDKBObject* kb = rd_kb_load(ctx, "psx/bios");
+    const RDDatum* kb = rd_kb_load(ctx, "psx/bios");
 
     const char* str = rd_format("bios.sel.%02x", sel);
-    const char* sel_str = rd_kbobject_get_str(kb, str);
+    const char* sel_str = rd_datum_get_str(kb, str);
     if(!sel_str) return NULL;
 
     str = rd_format("%s.%02x", sel_str, fn);
-    return rd_kbobject_get_str(kb, str);
+    return rd_datum_get_str(kb, str);
 }
 
 void psx_bios_autorename_hook(RDContext* ctx, const RDHookEvent* e,
